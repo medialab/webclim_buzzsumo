@@ -1,32 +1,29 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 import csv
 
 from dotenv import load_dotenv
 import requests
 
 
-# NBC, The Daily Mail, CNN, Fox News, The Independent, BBC, The New York Times, The Washington Post, Yahoo and The New York Post
+# domain_name_example = 'nytimes.com'
+domain_name_example = 'cnn.com'
+# We collect the date for two years (2019 and 2020) plus one day, as 2020 was a leap year.
+collection_period_length = 365 * 2 + 1
 
 load_dotenv()
 BUZZSUMO_API_KEY = os.getenv('BUZZSUMO_API_KEY')
 
-# domain_name_example = 'nytimes.com'
-domain_name_example = 'cnn.com'
-
 params = {
     'q': domain_name_example,
     'api_key': BUZZSUMO_API_KEY,
-    'num_results': 100,
-    'begin_date': datetime.timestamp(datetime.strptime('2019-01-01', '%Y-%m-%d')),
-    'end_date': datetime.timestamp(datetime.strptime('2019-01-02', '%Y-%m-%d'))
+    'num_results': 100
 }
-r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
-print(r.status_code)
 
+# NBC, The Daily Mail, CNN, Fox News, The Independent, BBC, The New York Times, The Washington Post, Yahoo and The New York Post
 column_names = [
     'url',
-    'date',
+    'published_date',
     'domain_name',
     'total_shares',
     'alexa_rank',
@@ -47,26 +44,26 @@ with f:
 
     writer = csv.writer(f)
     writer.writerow(column_names)
-    
-    for result in r.json()['results']:
-        row_to_add = [
-            result['url'],
-            datetime.fromtimestamp(result['published_date']),
-            result['domain_name'], 
-            result['total_shares'],
-            result['alexa_rank'],
-            result['pinterest_shares'],
-            result['total_reddit_engagements'], 
-            result['twitter_shares'],
-            result['total_facebook_shares'],
-            result['facebook_likes'],
-            result['facebook_comments'],
-            result['facebook_shares']
-        ]
-        writer.writerow(row_to_add)
 
-total_pages = r.json()['total_pages']
-print(r.json()['total_results'])
+    begin_date = datetime.strptime('2019-01-01', '%Y-%m-%d')
+
+    for date_index in range(collection_period_length):
+        print(begin_date)
+
+        params['begin_date'] = begin_date.timestamp()
+        params['end_date'] = (begin_date + timedelta(days=1)).timestamp()
+
+        r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
+        print(r.status_code)
+        
+        for result in r.json()['results']:
+            writer.writerow([result[column_name] for column_name in column_names])
+
+        begin_date += timedelta(days=1)
+
+
+# total_pages = r.json()['total_pages']
+# print(r.json()['total_results'])
 
 # r = requests.get(
 #     'https://api.buzzsumo.com/search/articles.json', 
