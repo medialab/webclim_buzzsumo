@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, timedelta
 import csv
+import sys
 
 from dotenv import load_dotenv
 import requests
@@ -45,7 +46,7 @@ column_names = [
     'facebook_shares'
 ]
 
-output_name = 'output_csv.csv'
+output_name = sys.argv[1] if len(sys.argv) >= 2 else 'articles.csv'
 output_path = os.path.join('.', 'data', 'buzzsumo_domain_name', output_name)
 f = open(output_path, 'w')
 
