@@ -69,7 +69,8 @@ with f:
             params['end_date'] = (begin_date + timedelta(days=1)).timestamp()
 
             r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
-
+            print(r)
+            
             if r.status_code == 200:
                 for result in r.json()['results']:
                     writer.writerow([result[column_name] for column_name in column_names])
