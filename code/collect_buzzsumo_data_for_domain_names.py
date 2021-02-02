@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta
 import csv
 import sys
+import time
 
 from dotenv import load_dotenv
 import requests
@@ -17,10 +18,10 @@ domain_name_list = [
     'bbc.com',
     'washingtonpost.com',
     'yahoo.com',
-    'nypost.com'
+    'nypost.com',
 ]
 
-# We collect the date for two years (2019 and 2020) plus one day, as 2020 was a leap year.
+# We collect the data for 2019 and 2020, so 365 * 2 + 1 days as 2020 was a leap year.
 collection_period_length = 365 * 2 + 1
 
 load_dotenv()
@@ -63,18 +64,25 @@ with f:
         begin_date = datetime.strptime('2019-01-01', '%Y-%m-%d')
 
         for date_index in range(collection_period_length):
-            print(begin_date)
 
+            print(begin_date)
             params['begin_date'] = begin_date.timestamp()
             params['end_date'] = (begin_date + timedelta(days=1)).timestamp()
 
-            r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
-            print(r)
-            
-            if r.status_code == 200:
-                for result in r.json()['results']:
-                    writer.writerow([result[column_name] for column_name in column_names])
-            else: 
-                print('ERROR', r.status_code, '\n')
+            api_call_attempt = 0
+            status_code = 400
+
+            while status_code != 200:
+
+                if api_call_attempt > 0:
+                    time.sleep(2**(api_call_attempt - 1))
+                api_call_attempt += 1
+
+                r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
+                status_code = r.status_code
+                print(status_code)
+
+            for result in r.json()['results']:
+                writer.writerow([result[column_name] for column_name in column_names])
 
             begin_date += timedelta(days=1)
