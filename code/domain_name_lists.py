@@ -10,3 +10,13 @@ ESTABLISHED_NEWS_DOMAIN_NAMES = [
     'yahoo.com',
     'nypost.com',
 ]
+
+MISINFORMATION_DOMAIN_NAMES = [
+    'infowars.com',
+    'sott.net'
+]
+
+MISINFORMATION_DOMAIN_NAMES_2 = [
+    'infowars.com',
+    'sott.net'
+]
