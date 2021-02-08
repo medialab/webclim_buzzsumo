@@ -11,9 +11,9 @@ ESTABLISHED_NEWS_DOMAIN_NAMES = [
     'nypost.com',
 ]
 
-MISINFORMATION_DOMAIN_NAMES = [
+MISINFORMATION_DOMAIN_NAMES_24 = [
+    'sott.net',
     'infowars.com',
-    'sott.net'
 ]
 
 MISINFORMATION_DOMAIN_NAMES_2 = [
