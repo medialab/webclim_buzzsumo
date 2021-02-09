@@ -22,7 +22,7 @@ def plot_platform_metrics(df, domain_name=None):
 
         ax = plt.subplot(5, 1, subplot_index + 1)
 
-        plt.plot(df.groupby(by=["date"])[columns_to_plot[subplot_index]].mean(),
+        plt.plot(df.groupby(by=["date", 'domain_name'])[columns_to_plot[subplot_index]].mean().groupby(by=['date']).mean(),
                 label=columns_to_plot[subplot_index], color='C' + str(subplot_index))
         plt.legend()
 
@@ -63,7 +63,6 @@ if __name__=="__main__":
     df = pd.read_csv(data_path)
 
     df['date'] = [datetime.fromtimestamp(x).date() for x in df['published_date']]
-    print(df.domain_name.unique())
 
     plot_platform_metrics(df)
     save_main_figure()
