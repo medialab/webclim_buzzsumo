@@ -7,14 +7,21 @@ import time
 from dotenv import load_dotenv
 import requests
 
-from domain_name_lists import ESTABLISHED_NEWS_DOMAIN_NAMES, MISINFORMATION_DOMAIN_NAMES_24
+from domain_name_lists import ESTABLISHED_NEWS_DOMAIN_NAMES, MISINFORMATION_DOMAIN_NAMES
 from buzzsumo_columns_to_keep import BUZZSUMO_COLUMNS_TO_KEEP
 
 
 if __name__=="__main__":
 
-    domain_name_list = ESTABLISHED_NEWS_DOMAIN_NAMES
-    # domain_name_list = MISINFORMATION_DOMAIN_NAMES_24
+    # domain_name_list = ESTABLISHED_NEWS_DOMAIN_NAMES
+    # domain_name_list = MISINFORMATION_DOMAIN_NAMES
+    domain_name_list = [
+        'sott.net',
+        'beforeitsnews.com',
+        'zerohedge.com',
+        'principia-scientific.org',
+        'healthimpactnews.com',
+    ]
 
     # We collect the data for 2019 and 2020, so 365 * 2 + 1 days as 2020 was a leap year.
     collection_period_length = 365 * 2 + 1
@@ -48,25 +55,30 @@ if __name__=="__main__":
                 params['end_date'] = (begin_date + timedelta(days=1)).timestamp()
 
                 api_call_attempt = 0
-                status_code = 400
 
-                while status_code != 200:
+                while True:
 
+                    # if first try, add a sleep function so that we wait at least 1.05 seconds between two calls (see later code)
                     if api_call_attempt == 0:
                         start_call_time = time.time()
+                    # if second try or more, wait an exponential time
                     else: 
                         time.sleep(2**(api_call_attempt - 1))
                     
                     r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
                     status_code = r.status_code
                     print(status_code)
-
-                    # Add a sleep function so that we wait at least 1.05 seconds between two calls.
+                    
                     if api_call_attempt == 0:
                         end_call_time = time.time()
-                        if (end_call_time - start_call_time) < 1.05:
-                            time.sleep(1.05 - (end_call_time - start_call_time))
-                    
+                        if (end_call_time - start_call_time) < 1.2:
+                            time.sleep(1.2 - (end_call_time - start_call_time))
+
+                    if status_code == 200:
+                        break
+                    else:
+                        print(r.json())
+
                     api_call_attempt += 1
 
                 for result in r.json()['results']:
