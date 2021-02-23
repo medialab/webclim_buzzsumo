@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 
 if __name__=="__main__":
 
-    domain_name = 'cnn.com'
-    # domain_name = 'nyposts.com'
+    # domain_name = 'cnn.com'
+    domain_name = 'nypost.com'
 
     file_name = "%s_posts.csv" % domain_name.split('.')[0]
     data_path = os.path.join(".", "data", "crowdtangle_domain_name", file_name)
