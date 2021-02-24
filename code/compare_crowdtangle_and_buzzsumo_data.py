@@ -8,8 +8,15 @@ import matplotlib.pyplot as plt
 
 if __name__=="__main__":
 
-    # domain_name = 'cnn.com'
-    domain_name = 'nypost.com'
+    domain_name = 'cnn.com'
+    # domain_name = 'nypost.com'
+
+    file_name = "established_news_2021-02-01.csv"
+    data_path = os.path.join(".", "data", "buzzsumo_domain_name", file_name)
+    bz_df = pd.read_csv(data_path)
+
+    bz_df = bz_df[bz_df['domain_name']==domain_name]
+    bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
 
     file_name = "%s_posts.csv" % domain_name.split('.')[0]
     data_path = os.path.join(".", "data", "crowdtangle_domain_name", file_name)
@@ -19,13 +26,6 @@ if __name__=="__main__":
     ct_df["facebook_shares"]   = ct_df[["actual_share_count"]].astype(int)
     ct_df["facebook_comments"] = ct_df[["actual_comment_count"]].astype(int)
     ct_df["facebook_likes"] = ct_df[["actual_like_count"]].astype(int)
-
-    file_name = "established_news_2020-01-02.csv"
-    data_path = os.path.join(".", "data", "buzzsumo_domain_name", file_name)
-    bz_df = pd.read_csv(data_path)
-
-    bz_df = bz_df[bz_df['domain_name']==domain_name]
-    bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
 
     columns_to_plot = [
         'facebook_likes',

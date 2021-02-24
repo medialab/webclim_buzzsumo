@@ -42,15 +42,16 @@ def plot_platform_metrics(df, domain_name=None):
             if domain_name:
                 plt.title(domain_name, fontsize='x-large')
             else:
-                plt.title('Established news domain names', fontsize='x-large')
+                plt.title('Misinformation domain names', fontsize='x-large')
 
     plt.tight_layout()
 
 
 def save_main_figure(domain_name=None):
-    figure_name = 'established_news.png'
+    # figure_name = 'established_news.png'
+    figure_name = 'misinfo_news.png'
     if domain_name:
-        figure_name = 'established_news_' + domain_name + '.png'
+        figure_name = figure_name.split('.')[0] + '_' + domain_name + '.png'
     figure_path = os.path.join('.', 'figure', figure_name)
     plt.savefig(figure_path)
     print("The '{}' figure is saved.".format(figure_name))
@@ -58,7 +59,8 @@ def save_main_figure(domain_name=None):
 
 if __name__=="__main__":
 
-    file_name = "established_news_2020-01-02.csv"
+    # file_name = "established_news_2021-02-01.csv"
+    file_name = "misinfo_news_2021-02-24.csv"
     data_path = os.path.join(".", "data", "buzzsumo_domain_name", file_name)
     df = pd.read_csv(data_path)
 
