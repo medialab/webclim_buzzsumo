@@ -78,6 +78,7 @@ if __name__=="__main__":
                         break
                     else:
                         print(r.json())
+                        print(r.headers)
 
                     api_call_attempt += 1
 
