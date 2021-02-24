@@ -14,14 +14,7 @@ from buzzsumo_columns_to_keep import BUZZSUMO_COLUMNS_TO_KEEP
 if __name__=="__main__":
 
     # domain_name_list = ESTABLISHED_NEWS_DOMAIN_NAMES
-    # domain_name_list = MISINFORMATION_DOMAIN_NAMES
-    domain_name_list = [
-        'sott.net',
-        'beforeitsnews.com',
-        'zerohedge.com',
-        'principia-scientific.org',
-        'healthimpactnews.com',
-    ]
+    domain_name_list = MISINFORMATION_DOMAIN_NAMES
 
     # We collect the data for 2019 and 2020, so 365 * 2 + 1 days as 2020 was a leap year.
     collection_period_length = 365 * 2 + 1
@@ -50,7 +43,8 @@ if __name__=="__main__":
 
             for date_index in range(collection_period_length):
 
-                print(begin_date)
+                if begin_date.day == 1:
+                    print('\n  ', begin_date.strftime("%Y-%m-%d"))
                 params['begin_date'] = begin_date.timestamp()
                 params['end_date'] = (begin_date + timedelta(days=1)).timestamp()
 
@@ -68,6 +62,7 @@ if __name__=="__main__":
                     r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
                     status_code = r.status_code
                     print(status_code)
+                    # print(r.headers['X-RateLimit-Month-Remaining'])
                     
                     if api_call_attempt == 0:
                         end_call_time = time.time()
@@ -76,9 +71,6 @@ if __name__=="__main__":
 
                     if status_code == 200:
                         break
-                    else:
-                        print(r.json())
-                        print(r.headers)
 
                     api_call_attempt += 1
 
