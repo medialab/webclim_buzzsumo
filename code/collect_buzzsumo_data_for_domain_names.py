@@ -61,8 +61,9 @@ if __name__=="__main__":
                     
                     r = requests.get('https://api.buzzsumo.com/search/articles.json', params=params)
                     status_code = r.status_code
-                    print(status_code)
-                    # print(r.headers['X-RateLimit-Month-Remaining'])
+                    if begin_date.day == 1:
+                        print('Remaining number of calls for this month:', r.headers['X-RateLimit-Month-Remaining'])
+                    print('Call status code:', status_code)
                     
                     if api_call_attempt == 0:
                         end_call_time = time.time()

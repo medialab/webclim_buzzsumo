@@ -18,4 +18,5 @@ MISINFORMATION_DOMAIN_NAMES = [
     'zerohedge.com',
     'principia-scientific.org',
     'healthimpactnews.com',
+    'breitbart.com',
 ]

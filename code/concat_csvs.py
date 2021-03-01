@@ -18,4 +18,4 @@ df = pd.concat([df1, df2, df3, df4, df5])
 print(len(df))
 print(df['domain_name'].unique())
 
-df.to_csv('./data/buzzsumo_domain_name/misinfo_news_2021-02-23.csv', index=False)
+df.to_csv('./data/buzzsumo_domain_name/misinfo_news_2021-02-24.csv', index=False)
