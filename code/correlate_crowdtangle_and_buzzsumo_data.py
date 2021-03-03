@@ -47,7 +47,6 @@ if __name__=="__main__":
 
         plt.yscale('log')
         plt.xscale('log')
-        plt.ylabel('')
         plt.ylabel('Buzzsumo')
         plt.xlabel('CrowdTangle')
         plt.title(columns_bz[i])
