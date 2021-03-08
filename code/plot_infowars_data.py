@@ -6,53 +6,59 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pytz
 
+from utils import import_data, save_figure
 
-input_path = os.path.join('.', 'data', 'buzzsumo_domain_name', 'infowars.csv')
-df = pd.read_csv(input_path)
-df['date'] = [datetime.fromtimestamp(x).date() for x in df['published_date']]
 
-columns_to_plot = [
-    "total_facebook_shares",
-    "twitter_shares"
-]
+def plot_buzzsumo_data(df):
 
-plt.figure(figsize=(10, 7))
+    columns_to_plot = [
+        "total_facebook_shares",
+        "twitter_shares"
+    ]
 
-for subplot_index in range(2):
+    plt.figure(figsize=(10, 7))
 
-    ax = plt.subplot(2, 1, subplot_index + 1)
+    for subplot_index in range(2):
 
-    plt.plot(df.groupby(by=["date"])[columns_to_plot[subplot_index]].mean(),
-            label=columns_to_plot[subplot_index], color='C' + str(subplot_index))
-    plt.legend()
+        ax = plt.subplot(2, 1, subplot_index + 1)
 
-    ax.spines['right'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.grid(axis="y")
-    plt.locator_params(axis='y', nbins=4)
+        plt.plot(df.groupby(by=["date"])[columns_to_plot[subplot_index]].mean(),
+                label=columns_to_plot[subplot_index], color='C' + str(subplot_index))
+        plt.legend()
 
-    plt.xlim(
-        np.datetime64(datetime.strptime('2016-12-31', '%Y-%m-%d') - timedelta(days=4)), 
-        np.datetime64(datetime.strptime('2021-03-01', '%Y-%m-%d') + timedelta(days=4))
-    )
-    plt.ylim(bottom=0)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.grid(axis="y")
+        plt.locator_params(axis='y', nbins=4)
 
-    if subplot_index == 0:
-        plt.axvline(x=np.datetime64("2018-08-01"), color='black', linestyle='--', linewidth=1)
-        plt.axvline(x=np.datetime64("2019-02-05"), color='black', linestyle='--', linewidth=1)
-        plt.axvline(x=np.datetime64("2019-05-02"), color='black', linestyle='--', linewidth=1)
-    elif subplot_index == 1:
-        plt.axvline(x=np.datetime64("2019-05-02"), color='black', linestyle='--', linewidth=1)
+        plt.xlim(
+            np.datetime64(datetime.strptime('2016-12-31', '%Y-%m-%d') - timedelta(days=4)), 
+            np.datetime64(datetime.strptime('2021-03-01', '%Y-%m-%d') + timedelta(days=4))
+        )
+        plt.ylim(bottom=0)
 
-    if subplot_index == 0:
-        plt.title('infowars.com', fontsize='x-large')
-        plt.ylim(top=5000)
-    elif subplot_index == 1:
-        plt.ylim(top=1000)
+        if subplot_index == 0:
+            plt.axvline(x=np.datetime64("2018-08-01"), color='black', linestyle='--', linewidth=1)
+            plt.axvline(x=np.datetime64("2019-02-05"), color='black', linestyle='--', linewidth=1)
+            plt.axvline(x=np.datetime64("2019-05-02"), color='black', linestyle='--', linewidth=1)
+        elif subplot_index == 1:
+            plt.axvline(x=np.datetime64("2019-05-02"), color='black', linestyle='--', linewidth=1)
 
-plt.tight_layout()
+        if subplot_index == 0:
+            plt.title('infowars.com', fontsize='x-large')
+            plt.ylim(top=5000)
+        elif subplot_index == 1:
+            plt.ylim(top=1000)
 
-figure_path = os.path.join('.', 'figure', 'infowars_buzzsumo.png')
-plt.savefig(figure_path)
-print("The '{}' figure is saved.".format(figure_path))
+    plt.tight_layout()
+
+    save_figure(figure_name='infowars_buzzsumo.png')
+
+
+if __name__=="__main__":
+
+    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
+
+    plot_buzzsumo_data(bz_df)
