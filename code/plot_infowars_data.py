@@ -26,39 +26,38 @@ def arrange_plot(ax):
 
 def plot_buzzsumo_data(df):
 
-    columns_to_plot = [
-        "total_facebook_shares",
-        "twitter_shares"
-    ]
+    ## Facebook data
+    plt.figure(figsize=(10, 4))
+    ax = plt.subplot(111)
 
-    plt.figure(figsize=(10, 7))
+    plt.plot(df.groupby(by=["date"])["total_facebook_shares"].sum(),
+            label="total_facebook_interaction", color='C0')
+    plt.legend()
+    arrange_plot(ax)
 
-    for subplot_index in range(2):
-
-        ax = plt.subplot(2, 1, subplot_index + 1)
-
-        plt.plot(df.groupby(by=["date"])[columns_to_plot[subplot_index]].sum(),
-                label=columns_to_plot[subplot_index], color='C' + str(subplot_index))
-        plt.legend()
-
-        arrange_plot(ax)
-
-        if subplot_index == 0:
-            plt.axvline(x=np.datetime64("2018-08-01"), color='black', linestyle='--', linewidth=1)
-            plt.axvline(x=np.datetime64("2019-02-05"), color='black', linestyle='--', linewidth=1)
-            plt.axvline(x=np.datetime64("2019-05-02"), color='black', linestyle='--', linewidth=1)
-        elif subplot_index == 1:
-            plt.axvline(x=np.datetime64("2019-05-02"), color='black', linestyle='--', linewidth=1)
-
-        if subplot_index == 0:
-            plt.title('infowars.com data from the Buzzsumo API', fontsize='x-large')
-            plt.ylim(top=100000)
-        elif subplot_index == 1:
-            plt.ylim(top=20000)
+    for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
+        plt.axvline(x=np.datetime64(date), color='black', linestyle='--', linewidth=1)
+    plt.title('infowars.com data from the Buzzsumo API', fontsize='x-large')
+    plt.ylim(top=100000)
 
     plt.tight_layout()
-    save_figure(figure_name='infowars_buzzsumo.png')
+    save_figure(figure_name='infowars_buzzsumo_facebook.png')
 
+    ## Twitter data
+    plt.figure(figsize=(10, 4))
+    ax = plt.subplot(111)
+
+    plt.plot(df.groupby(by=["date"])["twitter_shares"].sum(),
+        label="twitter_shares", color='C1')
+    plt.legend()
+    arrange_plot(ax)
+
+    plt.axvline(x=np.datetime64("2019-09-01"), color='black', linestyle='--', linewidth=1)
+    plt.title('infowars.com data from the Buzzsumo API', fontsize='x-large')
+    plt.ylim(top=20000) 
+
+    plt.tight_layout()
+    save_figure(figure_name='infowars_buzzsumo_twitter.png')
 
 def clean_ct_data(ct_df):
 
@@ -85,7 +84,6 @@ def plot_crowdtangle_data(df):
     plt.plot(df.groupby(by=['date'])['total_interaction'].sum(),
              label='total_facebook_interaction')
     plt.legend()
-
     arrange_plot(ax)
 
     for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
