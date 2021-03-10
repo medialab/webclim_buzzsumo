@@ -59,6 +59,7 @@ def plot_buzzsumo_data(df):
     plt.tight_layout()
     save_figure(figure_name='infowars_buzzsumo_twitter.png')
 
+
 def clean_ct_data(ct_df):
 
     ct_df['date'] = pd.to_datetime(ct_df['date'])
@@ -115,18 +116,38 @@ def plot_facebook_like_data(df):
     save_figure(figure_name='infowars_facebook_like.png')
 
 
+def plot_article_number(df):
+
+    plt.figure(figsize=(10, 4))
+    ax = plt.subplot(111)
+    plt.plot(df['date'], df['article_number'], label='Buzzsumo')
+    plt.legend()
+    arrange_plot(ax)
+
+    plt.ylim([0, 100])
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__=="__main__":
 
-    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
-    bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
-    plot_buzzsumo_data(bz_df)
+    # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    # bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
+    # plot_buzzsumo_data(bz_df)
 
-    ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
-    ct_df = clean_ct_data(ct_df)
-    plot_crowdtangle_data(ct_df)
+    # ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
+    # ct_df = clean_ct_data(ct_df)
+    # plot_crowdtangle_data(ct_df)
 
-    fl_df = import_data(folder='facebook_url_like', file_name='infowars.csv')
-    fl_df = fl_df.dropna(subset=['approx_likes_int'])
-    fl_df['date'] = [datetime.fromtimestamp(x).date() for x in fl_df['published_date']]
-    plot_facebook_like_data(fl_df)
+    # fl_df = import_data(folder='facebook_url_like', file_name='infowars.csv')
+    # fl_df = fl_df.dropna(subset=['approx_likes_int'])
+    # fl_df['date'] = [datetime.fromtimestamp(x).date() for x in fl_df['published_date']]
+    # plot_facebook_like_data(fl_df)
+
+    bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
+    bz_nb_df['date'] = pd.to_datetime(bz_nb_df['date'])
+    print(len(bz_nb_df))
+    print(np.min(bz_nb_df['date']), np.max(bz_nb_df['date']))
+    plot_article_number(bz_nb_df)
 
