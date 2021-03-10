@@ -57,7 +57,6 @@ def plot_buzzsumo_data(df):
             plt.ylim(top=20000)
 
     plt.tight_layout()
-
     save_figure(figure_name='infowars_buzzsumo.png')
 
 
@@ -98,6 +97,26 @@ def plot_crowdtangle_data(df):
     save_figure(figure_name='infowars_crowdtangle.png')
 
 
+def plot_facebook_like_data(df):
+
+    plt.figure(figsize=(10, 4))
+    ax = plt.subplot(111)
+
+    plt.plot(df.groupby(by=['date'])['approx_likes_int'].sum(),
+             label='total_facebook_interaction')
+    plt.legend()
+
+    arrange_plot(ax)
+
+    for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
+        plt.axvline(x=np.datetime64(date), color='black', linestyle='--', linewidth=1)
+    plt.title('infowars.com data from the Facebook Like button plugin', fontsize='x-large')
+    plt.ylim(top=150000)
+
+    plt.tight_layout()
+    save_figure(figure_name='infowars_facebook_like.png')
+
+
 if __name__=="__main__":
 
     bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
@@ -107,3 +126,9 @@ if __name__=="__main__":
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
     ct_df = clean_ct_data(ct_df)
     plot_crowdtangle_data(ct_df)
+
+    fl_df = import_data(folder='facebook_url_like', file_name='infowars.csv')
+    fl_df = fl_df.dropna(subset=['approx_likes_int'])
+    fl_df['date'] = [datetime.fromtimestamp(x).date() for x in fl_df['published_date']]
+    plot_facebook_like_data(fl_df)
+
