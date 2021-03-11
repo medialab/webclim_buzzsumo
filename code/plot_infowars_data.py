@@ -57,6 +57,7 @@ def plot_buzzsumo_data(df):
 
 def clean_ct_data(ct_df):
 
+    ct_df['year_month'] = ct_df['date'].apply(lambda x: '-'.join(x.split('-')[:2]))
     ct_df['date'] = pd.to_datetime(ct_df['date'])
 
     # ct_df['account_name'] = ct_df['account_name'].astype(str)
@@ -69,9 +70,10 @@ def clean_ct_data(ct_df):
         "actual_angry_count", "actual_thankful_count", "actual_care_count"
     ]].sum(axis=1).astype(int)
 
-    ct_df = ct_df[ct_df['date'] > np.datetime64('2017-12-31')]
+    ct_df = ct_df[ct_df['date'] > np.datetime64('2016-12-31')]
+    ct_df = ct_df[ct_df['date'] < np.datetime64('2021-03-01')]
 
-    return ct_df[['date', 'total_interaction']]
+    return ct_df[['date', 'total_interaction', 'account_name', 'year_month']]
 
 
 def plot_crowdtangle_data(df):
@@ -88,6 +90,27 @@ def plot_crowdtangle_data(df):
 
     plt.tight_layout()
     save_figure(figure_name='infowars_crowdtangle.png')
+
+
+def plot_top_spreaders(ct_df, top=10):
+
+    s = ct_df.groupby('account_name')['total_interaction'].sum()
+    s = s/np.sum(s)
+    s = s.sort_values(ascending=False)[:top]
+    list_accounts_to_watch = s.index.values
+    # print(s)
+
+    table = pd.pivot_table(ct_df, values='total_interaction', aggfunc=np.sum, 
+                           index=['year_month'], columns=['account_name'])
+    table['total'] = table.sum(axis=1) / 100
+    table = table.fillna(0)
+    table = table.div(table['total'], axis=0)
+    table = table[list_accounts_to_watch]
+
+    table.plot.area()
+    plt.xlabel('')
+    plt.ylabel('Percentage in Facebook total engagement')
+    save_figure('infowars_top' + str(top) + '_spreaders.png')
 
 
 def plot_article_number(bz_nb_df, fl_df):
@@ -107,17 +130,13 @@ if __name__=="__main__":
 
     bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
     bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
-    print(len(bz_df))
-    bz_df = bz_df[bz_df['date'] > np.datetime64('2017-12-31')]
-    print(len(bz_df))
+    # bz_df = bz_df[bz_df['date'] > np.datetime64('2017-12-31')]
     plot_buzzsumo_data(bz_df)
 
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
-    print(len(ct_df))
     ct_df = clean_ct_data(ct_df)
-    print(len(ct_df))
-
     plot_crowdtangle_data(ct_df)
+    plot_top_spreaders(ct_df)
 
     # bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
     # bz_nb_df['date'] = pd.to_datetime(bz_nb_df['date'])

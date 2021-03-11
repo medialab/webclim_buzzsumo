@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 def import_data(folder, file_name):
     data_path = os.path.join(".", "data", folder, file_name)
-    df = pd.read_csv(data_path)
+    df = pd.read_csv(data_path, low_memory=False)
     return df
 
 
