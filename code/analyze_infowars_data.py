@@ -138,6 +138,6 @@ if __name__=="__main__":
     plot_crowdtangle_data(ct_df)
     plot_top_spreaders(ct_df)
 
-    # bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
-    # bz_nb_df['date'] = pd.to_datetime(bz_nb_df['date'])
-    # plot_article_number(bz_nb_df, fl_df)
+    bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
+    bz_nb_df['date'] = pd.to_datetime(bz_nb_df['date'])
+    plot_article_number(bz_nb_df, fl_df)
