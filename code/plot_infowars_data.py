@@ -21,7 +21,7 @@ def arrange_plot():
     plt.locator_params(axis='y', nbins=4)
 
     plt.xlim(
-        np.datetime64(datetime.strptime('2016-12-31', '%Y-%m-%d') - timedelta(days=4)), 
+        np.datetime64(datetime.strptime('2017-12-31', '%Y-%m-%d') - timedelta(days=4)), 
         np.datetime64(datetime.strptime('2021-03-01', '%Y-%m-%d') + timedelta(days=4))
     )
 
@@ -69,6 +69,8 @@ def clean_ct_data(ct_df):
         "actual_angry_count", "actual_thankful_count", "actual_care_count"
     ]].sum(axis=1).astype(int)
 
+    ct_df = ct_df[ct_df['date'] > np.datetime64('2017-12-31')]
+
     return ct_df[['date', 'total_interaction']]
 
 
@@ -105,13 +107,18 @@ if __name__=="__main__":
 
     bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
     bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
+    print(len(bz_df))
+    bz_df = bz_df[bz_df['date'] > np.datetime64('2017-12-31')]
+    print(len(bz_df))
     plot_buzzsumo_data(bz_df)
 
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
+    print(len(ct_df))
     ct_df = clean_ct_data(ct_df)
-    print(ct_df.groupby(by=['date'])['total_interaction'].mean())
+    print(len(ct_df))
+
     plot_crowdtangle_data(ct_df)
 
-    bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
-    bz_nb_df['date'] = pd.to_datetime(bz_nb_df['date'])
-    plot_article_number(bz_nb_df, fl_df)
+    # bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
+    # bz_nb_df['date'] = pd.to_datetime(bz_nb_df['date'])
+    # plot_article_number(bz_nb_df, fl_df)
