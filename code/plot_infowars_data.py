@@ -102,18 +102,18 @@ def plot_facebook_like_data(df):
 
     for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
         plt.axvline(x=np.datetime64(date), color='black', linestyle='--', linewidth=1)
-    plt.title('infowars.com data from the Facebook Like button plugin', fontsize='x-large')
-    plt.ylim(top=150000)
+    plt.title('infowars.com data from the Media Cloud API and scraping the Facebook Like button', fontsize='x-large')
+    plt.ylim(top=600000)
 
     plt.tight_layout()
     save_figure(figure_name='infowars_facebook_like.png')
 
 
-def plot_article_number(df):
+def plot_article_number(bz_nb_df):
 
     arrange_plot()
 
-    plt.plot(df['date'], df['article_number'], label='Buzzsumo')
+    plt.plot(bz_nb_df['date'], bz_nb_df['article_number'], label='Buzzsumo')
     plt.legend()
 
     plt.ylim([0, 100])
@@ -132,9 +132,9 @@ if __name__=="__main__":
     ct_df = clean_ct_data(ct_df)
     plot_crowdtangle_data(ct_df)
 
-    fl_df = import_data(folder='facebook_url_like', file_name='infowars.csv')
+    fl_df = import_data(folder='mediacloud', file_name='infowars_fb_likes.csv')
     fl_df = fl_df.dropna(subset=['approx_likes_int'])
-    fl_df['date'] = [datetime.fromtimestamp(x).date() for x in fl_df['published_date']]
+    fl_df['date'] = pd.to_datetime(fl_df['publish_date'])
     plot_facebook_like_data(fl_df)
 
     bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
@@ -142,4 +142,3 @@ if __name__=="__main__":
     print(len(bz_nb_df))
     print(np.min(bz_nb_df['date']), np.max(bz_nb_df['date']))
     plot_article_number(bz_nb_df)
-
