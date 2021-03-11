@@ -24,7 +24,6 @@ def arrange_plot():
         np.datetime64(datetime.strptime('2016-12-31', '%Y-%m-%d') - timedelta(days=4)), 
         np.datetime64(datetime.strptime('2021-03-01', '%Y-%m-%d') + timedelta(days=4))
     )
-    plt.ylim(bottom=0)
 
 
 def plot_buzzsumo_data(df):
@@ -32,14 +31,13 @@ def plot_buzzsumo_data(df):
     ## Facebook data
     arrange_plot()
 
-    plt.plot(df.groupby(by=["date"])["total_facebook_shares"].sum(),
+    plt.plot(df.groupby(by=["date"])["total_facebook_shares"].mean(),
             label="total_facebook_interaction", color='C0')
     plt.legend()
 
     for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
         plt.axvline(x=np.datetime64(date), color='black', linestyle='--', linewidth=1)
     plt.title('infowars.com data from the Buzzsumo API', fontsize='x-large')
-    plt.ylim(top=100000)
 
     plt.tight_layout()
     save_figure(figure_name='infowars_buzzsumo_facebook.png')
@@ -52,7 +50,6 @@ def plot_buzzsumo_data(df):
 
     plt.axvline(x=np.datetime64("2019-09-01"), color='black', linestyle='--', linewidth=1)
     plt.title('infowars.com data from the Buzzsumo API', fontsize='x-large')
-    plt.ylim(top=20000) 
 
     plt.tight_layout()
     save_figure(figure_name='infowars_buzzsumo_twitter.png')
@@ -79,37 +76,19 @@ def plot_crowdtangle_data(df):
 
     arrange_plot()
     
-    plt.plot(df.groupby(by=['date'])['total_interaction'].sum(),
+    plt.plot(df.groupby(by=['date'])['total_interaction'].mean(),
              label='total_facebook_interaction')
     plt.legend()
 
     for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
         plt.axvline(x=np.datetime64(date), color='black', linestyle='--', linewidth=1)
     plt.title('infowars.com data from the CrowdTangle API', fontsize='x-large')
-    plt.ylim(top=20000)
 
     plt.tight_layout()
     save_figure(figure_name='infowars_crowdtangle.png')
 
 
-def plot_facebook_like_data(df):
-
-    arrange_plot()
-    
-    plt.plot(df.groupby(by=['date'])['approx_likes_int'].sum(),
-             label='total_facebook_interaction')
-    plt.legend()
-
-    for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
-        plt.axvline(x=np.datetime64(date), color='black', linestyle='--', linewidth=1)
-    plt.title('infowars.com data from the Media Cloud API and scraping the Facebook Like button', fontsize='x-large')
-    plt.ylim(top=600000)
-
-    plt.tight_layout()
-    save_figure(figure_name='infowars_facebook_like.png')
-
-
-def plot_article_number(bz_nb_df):
+def plot_article_number(bz_nb_df, fl_df):
 
     arrange_plot()
 
@@ -119,7 +98,7 @@ def plot_article_number(bz_nb_df):
     plt.ylim([0, 100])
 
     plt.tight_layout()
-    plt.show()
+    save_figure(figure_name='infowars_article_number.png')
 
 
 if __name__=="__main__":
@@ -130,15 +109,9 @@ if __name__=="__main__":
 
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
     ct_df = clean_ct_data(ct_df)
+    print(ct_df.groupby(by=['date'])['total_interaction'].mean())
     plot_crowdtangle_data(ct_df)
-
-    fl_df = import_data(folder='mediacloud', file_name='infowars_fb_likes.csv')
-    fl_df = fl_df.dropna(subset=['approx_likes_int'])
-    fl_df['date'] = pd.to_datetime(fl_df['publish_date'])
-    plot_facebook_like_data(fl_df)
 
     bz_nb_df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
     bz_nb_df['date'] = pd.to_datetime(bz_nb_df['date'])
-    print(len(bz_nb_df))
-    print(np.min(bz_nb_df['date']), np.max(bz_nb_df['date']))
-    plot_article_number(bz_nb_df)
+    plot_article_number(bz_nb_df, fl_df)
