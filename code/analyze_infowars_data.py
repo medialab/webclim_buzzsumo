@@ -20,7 +20,9 @@ def clean_bz_data(bz_df):
     bz_df['date'] = pd.to_datetime(bz_df['date'])
     bz_df = bz_df[bz_df['date'] > np.datetime64('2017-12-31')]
 
-    return bz_df[['date', 'total_interaction', 'reaction', 'share', 'comment', 'twitter_shares']]
+    bz_df = bz_df.drop_duplicates(subset=['url'])
+
+    return bz_df[['url', 'date', 'total_interaction', 'reaction', 'share', 'comment', 'twitter_shares']]
 
 
 def clean_ct_data(ct_df):
@@ -46,6 +48,13 @@ def clean_ct_data(ct_df):
     ct_df = ct_df[ct_df['date'] < np.datetime64('2021-03-01')]
 
     return ct_df[['date', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
+
+
+def clean_mc_data(mc_df):
+    mc_df['date'] = pd.to_datetime(mc_df['publish_date'])
+    mc_df = mc_df[mc_df['date'] > np.datetime64('2017-12-31')]
+    mc_df = mc_df[mc_df['date'] < np.datetime64('2021-03-01')]
+    return mc_df[['url', 'date']]
 
 
 def arrange_plot(ax):
@@ -142,6 +151,22 @@ def plot_top_spreaders(ct_df, top=10):
     save_figure('infowars_top' + str(top) + '_spreaders.png')
 
 
+def plot_daily_article_number(bz_df, mc_df):
+
+    plt.figure(figsize=(10, 4))
+    ax = plt.subplot(111)
+    arrange_plot(ax)
+
+    plt.plot(bz_df.resample('D', on='date')['date'].agg('count'), 
+        label= "Buzzsumo (" + str(bz_df.url.nunique()) + " articles)")
+    plt.plot(mc_df.resample('D', on='date')['date'].agg('count'), 
+        label= "Media Cloud (" + str(mc_df.url.nunique()) + " articles)")
+    plt.legend()
+
+    plt.ylabel("Articles per day")
+    save_figure('infowars_article_number.png')
+
+
 if __name__=="__main__":
 
     bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
@@ -152,4 +177,8 @@ if __name__=="__main__":
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
     ct_df = clean_ct_data(ct_df)
     plot_engagement(ct_df, platform="CrowdTangle")
-    plot_top_spreaders(ct_df)
+    plot_top_spreaders(ct_df, top=10)
+
+    mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
+    mc_df = clean_mc_data(mc_df)
+    plot_daily_article_number(bz_df, mc_df)
