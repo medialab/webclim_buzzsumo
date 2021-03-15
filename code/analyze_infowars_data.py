@@ -47,13 +47,15 @@ def clean_ct_data(ct_df):
     ct_df = ct_df[ct_df['date'] > np.datetime64('2017-12-31')]
     ct_df = ct_df[ct_df['date'] < np.datetime64('2021-03-01')]
 
-    return ct_df[['date', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
+    return ct_df[['date', 'caption', 'links', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
 
 
 def clean_mc_data(mc_df):
+
     mc_df['date'] = pd.to_datetime(mc_df['publish_date'])
     mc_df = mc_df[mc_df['date'] > np.datetime64('2017-12-31')]
     mc_df = mc_df[mc_df['date'] < np.datetime64('2021-03-01')]
+
     return mc_df[['url', 'date']]
 
 
@@ -169,16 +171,21 @@ def plot_daily_article_number(bz_df, mc_df):
 
 if __name__=="__main__":
 
-    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
-    bz_df = clean_bz_data(bz_df)
-    plot_engagement(bz_df, platform="Buzzsumo")
-    plot_buzzsumo_twitter_data(bz_df)
+    # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    # bz_df = clean_bz_data(bz_df)
+    # plot_engagement(bz_df, platform="Buzzsumo")
+    # plot_buzzsumo_twitter_data(bz_df)
 
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
     ct_df = clean_ct_data(ct_df)
-    plot_engagement(ct_df, platform="CrowdTangle")
-    plot_top_spreaders(ct_df, top=10)
+    print(ct_df[['caption', 'links']])
+    print(len(ct_df))
+    ct_df = ct_df[ct_df['caption']=='infowars.com']
+    print(len(ct_df))
 
-    mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
-    mc_df = clean_mc_data(mc_df)
-    plot_daily_article_number(bz_df, mc_df)
+    # plot_engagement(ct_df, platform="CrowdTangle")
+    # plot_top_spreaders(ct_df, top=10)
+
+    # mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
+    # mc_df = clean_mc_data(mc_df)
+    # plot_daily_article_number(bz_df, mc_df)
