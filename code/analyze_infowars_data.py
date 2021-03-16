@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import pytz
+import ural
 
 from utils import import_data, save_figure
 
@@ -47,7 +48,7 @@ def clean_ct_data(ct_df):
     ct_df = ct_df[ct_df['date'] > np.datetime64('2017-12-31')]
     ct_df = ct_df[ct_df['date'] < np.datetime64('2021-03-01')]
 
-    return ct_df[['date', 'caption', 'links', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
+    return ct_df[['date', 'link', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
 
 
 def clean_mc_data(mc_df):
@@ -153,39 +154,48 @@ def plot_top_spreaders(ct_df, top=10):
     save_figure('infowars_top' + str(top) + '_spreaders.png')
 
 
-def plot_daily_article_number(bz_df, mc_df):
+def filter_ct_data(ct_df):
+
+    ct_df['link'] = ct_df['link'].apply(lambda x: ural.normalize_url(str(x).strip()))
+    ct_df['domain_name'] = ct_df['link'].apply(lambda x: ural.get_domain_name(x))
+    ct_df = ct_df[ct_df['domain_name']=='infowars.com']
+    ct_df = ct_df[['date', 'link']].sort_values(by=['date'])
+    ct_df = ct_df.drop_duplicates(subset=['link'], keep='first')
+
+    return ct_df
+
+
+def plot_daily_article_number(bz_df, mc_df, ct_df):
 
     plt.figure(figsize=(10, 4))
     ax = plt.subplot(111)
     arrange_plot(ax)
 
-    plt.plot(bz_df.resample('D', on='date')['date'].agg('count'), 
-        label= "Buzzsumo (" + str(bz_df.url.nunique()) + " articles)")
-    plt.plot(mc_df.resample('D', on='date')['date'].agg('count'), 
-        label= "Media Cloud (" + str(mc_df.url.nunique()) + " articles)")
+    plt.plot(bz_df.resample('W', on='date')['date'].agg('count'), 
+        label= "Buzzsumo (" + str(bz_df.url.nunique()) + " articles)", color=[.2, .2, .2])
+    plt.plot(mc_df.resample('W', on='date')['date'].agg('count'), 
+        label= "Media Cloud (" + str(mc_df.url.nunique()) + " articles)", color='C3')
+    plt.plot(ct_df.resample('W', on='date')['date'].agg('count'), 
+        label= "CrowdTangle (" + str(ct_df.link.nunique()) + " articles)", color='C4')
     plt.legend()
 
-    plt.ylabel("Articles per day")
+    plt.ylabel("Articles per week")
     save_figure('infowars_article_number.png')
 
 
 if __name__=="__main__":
 
-    # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
-    # bz_df = clean_bz_data(bz_df)
+    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    bz_df = clean_bz_data(bz_df)
     # plot_engagement(bz_df, platform="Buzzsumo")
     # plot_buzzsumo_twitter_data(bz_df)
 
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
     ct_df = clean_ct_data(ct_df)
-    print(ct_df[['caption', 'links']])
-    print(len(ct_df))
-    ct_df = ct_df[ct_df['caption']=='infowars.com']
-    print(len(ct_df))
-
     # plot_engagement(ct_df, platform="CrowdTangle")
     # plot_top_spreaders(ct_df, top=10)
 
-    # mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
-    # mc_df = clean_mc_data(mc_df)
-    # plot_daily_article_number(bz_df, mc_df)
+    mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
+    mc_df = clean_mc_data(mc_df)
+    ct_df = filter_ct_data(ct_df)
+    plot_daily_article_number(bz_df, mc_df, ct_df)
