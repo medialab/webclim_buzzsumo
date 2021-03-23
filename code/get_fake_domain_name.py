@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+pd.set_option('display.max_rows', None)
 
 
 if __name__=="__main__":
@@ -9,4 +10,4 @@ if __name__=="__main__":
     df = pd.read_csv(df_path)
 
     vc = df.domain_name.value_counts()
-    print(vc[vc >= 20])
+    print(vc[vc >= 5])
