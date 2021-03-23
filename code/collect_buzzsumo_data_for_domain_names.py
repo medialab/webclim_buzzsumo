@@ -71,7 +71,10 @@ if __name__=="__main__":
                         if (begin_date.day == 1) and ('X-RateLimit-Month-Remaining' in r.headers.keys()):
                             print('Remaining number of calls for this month:', r.headers['X-RateLimit-Month-Remaining'])
                         print('Call status code:', status_code)
-                        
+
+                        if status_code == 420:
+                            time.sleep(1800)
+
                         if api_call_attempt == 0:
                             end_call_time = time.time()
                             if (end_call_time - start_call_time) < 1.2:
