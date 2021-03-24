@@ -15,8 +15,9 @@ from buzzsumo_columns_to_keep import BUZZSUMO_COLUMNS_TO_KEEP
 if __name__=="__main__":
 
     domain_name_list = MISINFORMATION_DOMAIN_NAMES_2
-    # We collect the data for 2019 and 2020, so 365 * 2 + 1 days as 2020 was a leap year.
+    begin_date_st = '2019-01-01'
     collection_period_length = 365 * 2 + 1
+    # We collect the data for 2019 and 2020, so 365 * 2 + 1 days as 2020 was a leap year.
 
     load_dotenv()
     params = {
@@ -44,9 +45,9 @@ if __name__=="__main__":
             for domain_name in domain_name_list:
 
                 params['q'] = domain_name
-                print('\n\n', domain_name.upper(), '\n')
+                print('\n\n########################   ', domain_name.upper(), '   ########################\n')
 
-                begin_date = datetime.strptime('2019-01-01', '%Y-%m-%d')
+                begin_date = datetime.strptime(begin_date_st, '%Y-%m-%d')
 
                 for date_index in range(collection_period_length):
 
@@ -73,6 +74,7 @@ if __name__=="__main__":
                         print('Call status code:', status_code)
 
                         if status_code == 420:
+                            print("-----------------------   PAUSE   -----------------------")
                             time.sleep(1800)
 
                         if api_call_attempt == 0:
