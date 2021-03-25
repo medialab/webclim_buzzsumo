@@ -1,36 +1,39 @@
+from datetime import datetime, timedelta
+
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
+
+from plot_buzzsumo_data import plot_platform_metrics
 
 
-df_nb = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_nb.csv')
-df_nb['article_number_collected'] = df_nb['article_number'].apply(lambda x: np.min([x, 100]))
-print(np.sum(df_nb['article_number_collected']))
+pd.options.display.max_rows = None
 
-# ['domain_name', 'date', 'article_number']
-# ['date', 'url', 'published_date', 'domain_name', 'total_shares',
-#    'alexa_rank', 'pinterest_shares', 'total_reddit_engagements',
-#    'twitter_shares', 'total_facebook_shares', 'facebook_likes',
-#    'facebook_comments', 'facebook_shares']
-df1 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_1.csv')
-df2 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_2.csv')
-df3 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_3.csv')
-df4 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_4.csv')
-df5 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_5.csv')
-df6 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_6.csv')
-df7 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_7.csv')
-df8 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_8.csv')
 
-df = pd.concat([df1, df2, df3, df4, df5, df6, df7, df8])
-print(df.columns)
-print(len(df))
+if __name__=="__main__":
 
-# df['date'] = pd.to_datetime(df['date'])
-# df = df.sort_values(by=['domain_name', 'date'])
-# print(np.mean(df['article_number']))
-# print(len(df))
-# print(df.domain_name.nunique())
-# for domain_name in df.domain_name.unique():
-#     df_temp = df[df['domain_name']==domain_name]
-#     print(domain_name, ': ', len(df_temp), ', ', len(df_temp[df_temp.duplicated(['date'])]))
+    # ['domain_name', 'date', 'article_number']
+    df_nb = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_nb.csv')
+    df_nb['date'] = pd.to_datetime(df_nb['date'])
+    domain_name = "infowars.com"
+    df_nb_temp = df_nb[df_nb['domain_name']==domain_name]
 
-# df.to_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23.csv', index=False)
+    # plt.figure(figsize=(10, 4))
+    # plt.title(domain_name)
+    # plt.plot(df_nb_temp.resample('D', on='date')['article_number'].sum(), label="Articles published per day")
+    # plt.legend()
+    # plt.show()
+
+    # ['date', 'url', 'published_date', 'domain_name', 'total_shares',
+    #    'alexa_rank', 'pinterest_shares', 'total_reddit_engagements',
+    #    'twitter_shares', 'total_facebook_shares', 'facebook_likes',
+    #    'facebook_comments', 'facebook_shares']
+    df_url = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23.csv')
+    print(len(df_url))
+    df_url['date'] = [datetime.fromtimestamp(x).date() for x in df_url['published_date']]
+    df_url['date'] = pd.to_datetime(df_url['date'])
+
+    # plt.figure(figsize=(10, 12))
+    # ax = plt.subplot(311)
+    # plot_platform_metrics(df_url)
+    # plt.show()
