@@ -59,6 +59,7 @@ MISINFORMATION_DOMAIN_NAMES_2 = [
 ]
 
 MISINFORMATION_DOMAIN_NAMES_3 = [
+    'principia-scientific.org',
     'off-guardian.org',
     'worldtruth.tv',
     'climatedepot.com',
@@ -102,7 +103,7 @@ MISINFORMATION_DOMAIN_NAMES_3 = [
     'nouvelordremondial.cc',
     'namelyliberty.com',
     'wnd.com',
-    'foxnews.com',
     'thewashingtonstandard.com',
     'electroverse.net',
+    'foxnews.com',
 ]

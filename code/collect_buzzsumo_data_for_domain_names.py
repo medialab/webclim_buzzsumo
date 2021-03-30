@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 import requests
 import pandas as pd
 
-from domain_name_lists import MISINFORMATION_DOMAIN_NAMES_2
+from domain_name_lists import MISINFORMATION_DOMAIN_NAMES_3
 from buzzsumo_columns_to_keep import BUZZSUMO_COLUMNS_TO_KEEP
 
 
 if __name__=="__main__":
 
-    domain_name_list = MISINFORMATION_DOMAIN_NAMES_2
+    domain_name_list = MISINFORMATION_DOMAIN_NAMES_3
     begin_date_st = '2019-01-01'
     collection_period_length = 365 * 2 + 1
     # We collect the data for 2019 and 2020, so 365 * 2 + 1 days as 2020 was a leap year.
