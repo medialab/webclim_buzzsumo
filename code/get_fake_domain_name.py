@@ -11,7 +11,8 @@ if __name__=="__main__":
 
     vc = df.domain_name.value_counts()
 
-    misinfo_list = vc[vc >= 8].index.to_list()
+    # misinfo_list = vc[vc >= 8].index.to_list()
+    misinfo_list = vc[(vc < 8) & (vc >= 4)].index.to_list()
     print(len(misinfo_list))
 
     platforms = [
@@ -27,13 +28,19 @@ if __name__=="__main__":
         'vimeo.com',
         'iheart.com',
         'brandnewtube.com',
+        'parler.com',
+        'dailymotion.com',
+        'rumble.com',
+        'home.blog',
+        '2020electioncenter.com',
+        'scribd.com',
+        'brighteon.com',
+        'newtube.app'
     ]
-    print(len(platforms))
-
-    duplicate = 'principia-scientific.org'
 
     misinfo_list = [x for x in misinfo_list if x not in platforms]
-    misinfo_list.remove(duplicate)
+    if 'principia-scientific.org' in misinfo_list:
+        misinfo_list.remove('principia-scientific.org')
     for x in misinfo_list:
-        print(x)
+        print("'", x, "',", sep = '')
     print(len(misinfo_list))
