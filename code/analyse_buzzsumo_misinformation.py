@@ -50,7 +50,6 @@ def plot_average_engagement(df):
     plt.legend()
 
     plt.tight_layout()
-    save_figure(figure_name='34_misinformation_average_engagement.png')
 
 
 def plot_article_number_individually(df_nb):
@@ -87,7 +86,14 @@ if __name__=="__main__":
     df_url = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23.csv')
     df_url['date'] = [datetime.fromtimestamp(x).date() for x in df_url['published_date']]
     df_url['date'] = pd.to_datetime(df_url['date'])
+
     plot_average_engagement(df_url)
+    save_figure(figure_name='34_misinformation_engagement.png')
+
+    excluded_domain_name = ['zerohedge.com', 'stateofthenation.co', 'principia-scientific.com', 'newsbreak.com', 'infowars.com', 'humansarefree.com', 'greenmedinfo.com', 'dcdirtylaundry.com', 'dcclothesline.com', 'davidicke.com']
+    df_url = df_url[~df_url['domain_name'].isin(excluded_domain_name)]
+    plot_average_engagement(df_url)
+    save_figure(figure_name='34_misinformation_engagement_filtered.png')
 
     # ['domain_name', 'date', 'article_number']
     df_nb = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_nb.csv')
