@@ -23,9 +23,6 @@ def arrange_plot(ax):
         np.datetime64(datetime.strptime('2021-01-01', '%Y-%m-%d') + timedelta(days=4))
     )
 
-    plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
-
-
 def plot_average_engagement(df):
     
     plt.figure(figsize=(10, 12))
@@ -37,11 +34,13 @@ def plot_average_engagement(df):
     plt.plot(df.resample('D', on='date')['facebook_likes'].sum().rolling(window=5, win_type='triang', center=True).mean(), label="Facebook likes per day")
     plt.plot(df.resample('D', on='date')['facebook_shares'].sum().rolling(window=5, win_type='triang', center=True).mean(), label="Facebook shares per day")
     plt.plot(df.resample('D', on='date')['facebook_comments'].sum().rolling(window=5, win_type='triang', center=True).mean(), label="Facebook comments per day")
+    plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
     plt.legend()
 
     ax = plt.subplot(312)
     arrange_plot(ax)
     plt.plot(df.resample('D', on='date')['twitter_shares'].sum().rolling(window=5, win_type='triang', center=True).mean(), label="Twitter shares per day", color='C3')
+    plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
     plt.legend()
 
     ax = plt.subplot(313)
@@ -51,7 +50,32 @@ def plot_average_engagement(df):
     plt.legend()
 
     plt.tight_layout()
-    save_figure(figure_name='34_misinformation.png')
+    save_figure(figure_name='34_misinformation_average_engagement.png')
+
+
+def plot_article_number_individually(df_nb):
+
+    domain_name_index = 0    
+    for domain_name in df_nb.domain_name.unique():
+
+        if domain_name_index % 10 == 0:
+            plt.figure(figsize=(12, 14))
+
+        ax = plt.subplot(5, 2, domain_name_index % 10 + 1)
+
+        plt.plot(df_nb[df_nb['domain_name']==domain_name].resample('D', on='date')['article_number'].sum(), 
+                 label=domain_name)
+        plt.hlines(y=0, color='black', linestyle='--', linewidth=1,
+                xmin=np.datetime64(datetime.strptime('2018-12-31', '%Y-%m-%d')), 
+                xmax=np.datetime64(datetime.strptime('2021-01-01', '%Y-%m-%d')))
+        arrange_plot(ax)
+        plt.title(domain_name)
+
+        if (domain_name_index % 10 == 9) | (domain_name_index == df_nb.domain_name.nunique() - 1):
+            plt.tight_layout()
+            save_figure('34_misinformation_article_nb_{}'.format(int(domain_name_index / 10) + 1))
+
+        domain_name_index += 1
 
 
 if __name__=="__main__":
@@ -65,16 +89,7 @@ if __name__=="__main__":
     df_url['date'] = pd.to_datetime(df_url['date'])
     plot_average_engagement(df_url)
 
-    # # ['domain_name', 'date', 'article_number']
-    # df_nb = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_nb.csv')
-    # df_nb['date'] = pd.to_datetime(df_nb['date'])
-    # domain_name = "infowars.com"
-    # df_nb_temp = df_nb[df_nb['domain_name']==domain_name]
-
-    # plt.figure(figsize=(10, 4))
-    # plt.plot(df_nb_temp.resample('D', on='date')['article_number'].sum(), label="Articles published per day")
-    # plt.legend()
-    # plt.hlines(y=0, color='black', linestyle='--', linewidth=1,
-    #            xmin=np.datetime64(datetime.strptime('2018-12-31', '%Y-%m-%d')), 
-    #            xmax=np.datetime64(datetime.strptime('2021-01-01', '%Y-%m-%d')))
-    # plt.show()
+    # ['domain_name', 'date', 'article_number']
+    df_nb = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_nb.csv')
+    df_nb['date'] = pd.to_datetime(df_nb['date'])
+    plot_article_number_individually(df_nb)
