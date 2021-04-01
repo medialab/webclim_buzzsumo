@@ -55,6 +55,28 @@ def plot_average_engagement(df):
     plt.legend()
 
     plt.tight_layout()
+    save_figure(figure_name='{}_misinformation_engagement.png'.format(df_url.domain_name.nunique()))
+
+
+def plot_individual_engagement(df_url):
+
+    domain_name_index = 0    
+    for domain_name in df_url.domain_name.unique():
+
+        if domain_name_index % 10 == 0:
+            plt.figure(figsize=(12, 14))
+
+        ax = plt.subplot(5, 2, domain_name_index % 10 + 1)
+        arrange_plot(ax)
+        plot_facebook_engagement(df_url[df_url['domain_name']==domain_name])
+        if domain_name_index % 10 == 0: plt.legend()
+        plt.title(domain_name)
+
+        if (domain_name_index % 10 == 9) | (domain_name_index == df_url.domain_name.nunique() - 1):
+            plt.tight_layout()
+            save_figure('{}_misinformation_engagement_{}.png'.format(df_url.domain_name.nunique(), int(domain_name_index / 10) + 1))
+
+        domain_name_index += 1
 
 
 def plot_article_number_individually(df_nb):
@@ -98,7 +120,7 @@ if __name__=="__main__":
     df_url = df_url.drop_duplicates(subset=['url'])
 
     plot_average_engagement(df_url)
-    save_figure(figure_name='{}_misinformation_engagement.png'.format(df_url.domain_name.nunique()))
+    plot_individual_engagement(df_url)
 
     # excluded_domain_name = ['zerohedge.com', 'stateofthenation.co', 'principia-scientific.com', 'newsbreak.com', 'infowars.com', 'humansarefree.com', 'greenmedinfo.com', 'dcdirtylaundry.com', 'dcclothesline.com', 'davidicke.com']
     # df_url = df_url[~df_url['domain_name'].isin(excluded_domain_name)]
