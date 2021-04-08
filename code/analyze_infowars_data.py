@@ -46,7 +46,7 @@ def clean_ct_data(ct_df):
     ]].sum(axis=1).astype(int)
 
     ct_df = ct_df[ct_df['date'] > np.datetime64('2017-12-31')]
-    ct_df = ct_df[ct_df['date'] < np.datetime64('2021-03-01')]
+    ct_df = ct_df[ct_df['date'] < np.datetime64('2021-01-01')]
 
     return ct_df[['date', 'link', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
 
@@ -69,12 +69,23 @@ def arrange_plot(ax):
     plt.locator_params(axis='y', nbins=4)
 
     plt.xlim(
-        np.datetime64(datetime.strptime('2017-12-31', '%Y-%m-%d') - timedelta(days=4)), 
-        np.datetime64(datetime.strptime('2021-03-01', '%Y-%m-%d') + timedelta(days=4))
+        np.datetime64(datetime.strptime('2017-12-31', '%Y-%m-%d')), 
+        np.datetime64(datetime.strptime('2021-01-01', '%Y-%m-%d'))
     )
 
-    for date in ["2018-08-01", "2019-02-05", "2019-05-02"]:
-        plt.axvline(x=np.datetime64(date), color='black', linestyle='--', linewidth=1)
+    plt.xticks(
+        [np.datetime64('2018-06-30'), np.datetime64('2019-06-30'), np.datetime64('2020-06-30')],
+        ['2018', '2019', '2020'], fontsize='large'
+    )
+    ax.xaxis.set_tick_params(length=0)
+    plt.axvspan(np.datetime64('2018-01-01'), np.datetime64('2018-12-31'), 
+                ymin=0, ymax=23000, facecolor='k', alpha=0.05)
+    plt.axvspan(np.datetime64('2020-01-01'), np.datetime64('2020-12-31'), 
+                ymin=0, ymax=23000, facecolor='k', alpha=0.05)
+
+    for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
+        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 20200], color='C3', linestyle='-.')
+        plt.text(np.datetime64(date), 20500, date, size='medium', color='C3', rotation=30.)
 
 
 def plot_engagement(df, platform):
@@ -110,6 +121,24 @@ def plot_engagement(df, platform):
 
     plt.tight_layout()
     save_figure(figure_name='infowars_' + platform.lower() + '.png')
+
+
+def plot_figure_1(ct_df):
+
+    plt.figure(figsize=(10, 5))
+    ax = plt.subplot(111)
+    plt.title('Engagement for the Facebook public posts sharing an Infowars link', fontsize='x-large')
+
+    arrange_plot(ax)
+    plt.plot(ct_df.resample('W', on='date')['reaction'].sum(), label="Reactions (likes, ...) per week")
+    plt.plot(ct_df.resample('W', on='date')['share'].sum(), label="Shares per week")
+    plt.plot(ct_df.resample('W', on='date')['comment'].sum(), label="Comments per week")
+    plt.legend()
+
+    plt.ylim([0, 23000])
+
+    plt.tight_layout()
+    save_figure(figure_name='infowars_figure_1.png')
 
 
 def plot_buzzsumo_twitter_data(df):
@@ -185,8 +214,8 @@ def plot_daily_article_number(bz_df, mc_df, ct_df):
 
 if __name__=="__main__":
 
-    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
-    bz_df = clean_bz_data(bz_df)
+    # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    # bz_df = clean_bz_data(bz_df)
     # plot_engagement(bz_df, platform="Buzzsumo")
     # plot_buzzsumo_twitter_data(bz_df)
 
@@ -194,8 +223,9 @@ if __name__=="__main__":
     ct_df = clean_ct_data(ct_df)
     # plot_engagement(ct_df, platform="CrowdTangle")
     # plot_top_spreaders(ct_df, top=10)
+    plot_figure_1(ct_df)
 
-    mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
-    mc_df = clean_mc_data(mc_df)
-    ct_df = filter_ct_data(ct_df)
-    plot_daily_article_number(bz_df, mc_df, ct_df)
+    # mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
+    # mc_df = clean_mc_data(mc_df)
+    # ct_df = filter_ct_data(ct_df)
+    # plot_daily_article_number(bz_df, mc_df, ct_df)
