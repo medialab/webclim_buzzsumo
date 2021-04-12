@@ -10,22 +10,6 @@ import ural
 from utils import import_data, save_figure
 
 
-def clean_bz_data(bz_df):
-
-    bz_df['reaction'] = bz_df["facebook_likes"].astype(int)
-    bz_df['share'] = bz_df["facebook_shares"].astype(int)
-    bz_df['comment'] = bz_df["facebook_comments"].astype(int)
-    bz_df['total_interaction'] = bz_df["total_facebook_shares"].astype(int)
-
-    bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
-    bz_df['date'] = pd.to_datetime(bz_df['date'])
-    bz_df = bz_df[bz_df['date'] > np.datetime64('2017-12-31')]
-
-    bz_df = bz_df.drop_duplicates(subset=['url'])
-
-    return bz_df[['url', 'date', 'total_interaction', 'reaction', 'share', 'comment', 'twitter_shares']]
-
-
 def clean_ct_data(ct_df):
 
     ct_df['year_month'] = ct_df['date'].apply(lambda x: '-'.join(x.split('-')[:2]))
@@ -51,15 +35,6 @@ def clean_ct_data(ct_df):
     return ct_df[['date', 'link', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
 
 
-def clean_mc_data(mc_df):
-
-    mc_df['date'] = pd.to_datetime(mc_df['publish_date'])
-    mc_df = mc_df[mc_df['date'] > np.datetime64('2017-12-31')]
-    mc_df = mc_df[mc_df['date'] < np.datetime64('2021-03-01')]
-
-    return mc_df[['url', 'date']]
-
-
 def arrange_plot(ax):
 
     ax.spines['right'].set_visible(False)
@@ -79,48 +54,9 @@ def arrange_plot(ax):
     )
     ax.xaxis.set_tick_params(length=0)
     plt.axvspan(np.datetime64('2018-01-01'), np.datetime64('2018-12-31'), 
-                ymin=0, ymax=23000, facecolor='k', alpha=0.05)
+                ymin=0, ymax=200000, facecolor='k', alpha=0.05)
     plt.axvspan(np.datetime64('2020-01-01'), np.datetime64('2020-12-31'), 
-                ymin=0, ymax=23000, facecolor='k', alpha=0.05)
-
-    for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
-        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 20200], color='C3', linestyle='-.')
-        plt.text(np.datetime64(date), 20500, date, size='medium', color='C3', rotation=30.)
-
-
-def plot_engagement(df, platform):
-
-    item = {
-        'Buzzsumo': 'article',
-        'CrowdTangle': 'post'
-    }
-
-    plt.figure(figsize=(10, 12))
-
-    ax = plt.subplot(311)
-    plt.title('infowars.com data from the ' + platform + ' API', fontsize='x-large')
-
-    arrange_plot(ax)
-    plt.plot(df.resample('W', on='date')['reaction'].sum(), label="Likes per week")
-    plt.plot(df.resample('W', on='date')['share'].sum(), label="Shares per week")
-    plt.plot(df.resample('W', on='date')['comment'].sum(), label="Comments per week")
-    plt.legend()
-
-    ax = plt.subplot(312)
-    arrange_plot(ax)
-    plt.plot(df.resample('W', on='date')['date'].agg('count'), 
-        label= item[platform].capitalize() + "s per week", color=[.2, .2, .2])
-    plt.legend()
-
-    ax = plt.subplot(313)
-    arrange_plot(ax)
-    plt.plot(df.resample('W', on='date')['reaction'].mean(), label="Likes per " + item[platform])
-    plt.plot(df.resample('W', on='date')['share'].mean(), label="Shares per " + item[platform])
-    plt.plot(df.resample('W', on='date')['comment'].mean(), label="Comments per " + item[platform])
-    plt.legend()
-
-    plt.tight_layout()
-    save_figure(figure_name='infowars_' + platform.lower() + '.png')
+                ymin=0, ymax=200000, facecolor='k', alpha=0.05)
 
 
 def plot_figure_1(ct_df):
@@ -136,30 +72,45 @@ def plot_figure_1(ct_df):
     plt.legend()
 
     plt.ylim([0, 23000])
+    for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
+        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 20200], color='C3', linestyle='-.')
+        plt.text(np.datetime64(date), 20500, date, size='medium', color='C3', rotation=30.)
 
     plt.tight_layout()
     save_figure(figure_name='infowars_figure_1.png')
 
 
-def plot_buzzsumo_twitter_data(df):
+def clean_bz_data(bz_df):
 
-    plt.figure(figsize=(10, 8))
+    bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
+    bz_df['date'] = pd.to_datetime(bz_df['date'])
+    bz_df = bz_df[bz_df['date'] > np.datetime64('2017-12-31')]
+    bz_df = bz_df[bz_df['date'] < np.datetime64('2020-06-11')]
 
-    ax = plt.subplot(211)
-    plt.title('infowars.com data from the Buzzsumo API', fontsize='x-large')
+    bz_df = bz_df.drop_duplicates(subset=['url'])
+
+    return bz_df[['url', 'date', 'total_facebook_shares', 'facebook_likes', 'facebook_shares', 'facebook_comments']]
+
+
+def plot_figure_2(bz_df):
+
+    plt.figure(figsize=(10, 5))
+    ax = plt.subplot(111)
+    plt.title('Facebook engagement for the Infowars articles', fontsize='x-large')
+
     arrange_plot(ax)
-    plt.plot(df.resample('W', on='date')['twitter_shares'].sum(),
-        label="Twitter shares per week", color='C3')
+    plt.plot(bz_df.resample('W', on='date')['facebook_likes'].sum(), label="Reactions (likes, ...) per week")
+    plt.plot(bz_df.resample('W', on='date')['facebook_shares'].sum(), label="Shares per week")
+    plt.plot(bz_df.resample('W', on='date')['facebook_comments'].sum(), label="Comments per week")
     plt.legend()
 
-    ax = plt.subplot(212)
-    arrange_plot(ax)
-    plt.plot(df.resample('W', on='date')['twitter_shares'].mean(),
-        label="Twitter shares per article", color='C3')
-    plt.legend()
+    plt.ylim([0, 180000])
+    for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
+        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 158000], color='C3', linestyle='-.')
+        plt.text(np.datetime64(date), 160000, date, size='medium', color='C3', rotation=30.)
 
     plt.tight_layout()
-    save_figure(figure_name='infowars_buzzsumo_twitter.png')
+    save_figure(figure_name='infowars_figure_2.png')
 
 
 def plot_top_spreaders(ct_df, top=10):
@@ -214,16 +165,24 @@ def plot_daily_article_number(bz_df, mc_df, ct_df):
 
 if __name__=="__main__":
 
+    # ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
+    # ct_df = clean_ct_data(ct_df)
+    # plot_figure_1(ct_df)
+
     # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
     # bz_df = clean_bz_data(bz_df)
-    # plot_engagement(bz_df, platform="Buzzsumo")
-    # plot_buzzsumo_twitter_data(bz_df)
+    # plot_figure_2(bz_df)
 
-    ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
-    ct_df = clean_ct_data(ct_df)
-    # plot_engagement(ct_df, platform="CrowdTangle")
-    # plot_top_spreaders(ct_df, top=10)
-    plot_figure_1(ct_df)
+    df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
+    print(df.iloc[1257:1268])
+    print(df.iloc[1257:1268].article_number.sum()) 
+    print()
+    print(df.iloc[1372:1461])
+    print(df.iloc[1372:1461].article_number.sum())
+    print()
+    print(df.iloc[365].date)
+    print(df.iloc[1256].date)
+    print(df.iloc[365:1257].article_number.mean())
 
     # mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
     # mc_df = clean_mc_data(mc_df)
