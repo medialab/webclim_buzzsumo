@@ -55,7 +55,40 @@ def plot_average_engagement(df):
     plt.legend()
 
     plt.tight_layout()
-    save_figure(figure_name='{}_misinformation_engagement.png'.format(df_url.domain_name.nunique()))
+    save_figure(figure_name='{}_misinformation_engagement.png'.format(df.domain_name.nunique()))
+
+
+def compute_normalized_average(df, column):
+    df_temp = pd.DataFrame()
+    for domain_name in df.domain_name.unique():
+        s_temp = df[df['domain_name']==domain_name].resample('D', on='date')[column].mean()
+        df_temp[domain_name] = (s_temp - s_temp.mean()) / s_temp.std()
+    return df_temp.mean(axis=1)
+
+
+def plot_normalized_average(df):
+
+    plt.figure(figsize=(10, 8))
+
+    ax = plt.subplot(211)
+    plt.title('Normalized average for the {} misinformation domain names'.format(df.domain_name.nunique()), fontsize='x-large')
+
+    arrange_plot(ax)
+    for column in ['facebook_likes', 'facebook_shares', 'facebook_comments']:
+        plt.plot(compute_normalized_average(df, column).rolling(window=5, win_type='triang', center=True).mean(), 
+                label="Facebook " + column.split('_')[1] + " per post")
+    plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
+    plt.legend()
+
+    ax = plt.subplot(212)
+    arrange_plot(ax)
+    plt.plot(compute_normalized_average(df, 'twitter_shares').rolling(window=5, win_type='triang', center=True).mean(), 
+             label="Twitter shares per tweet", color='C3')
+    plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
+    plt.legend()
+
+    plt.tight_layout()
+    save_figure(figure_name='{}_normalized_average.png'.format(df.domain_name.nunique()))
 
 
 def plot_individual_engagement(df_url):
@@ -118,19 +151,20 @@ if __name__=="__main__":
     df_url['date'] = [datetime.fromtimestamp(x).date() for x in df_url['published_date']]
     df_url['date'] = pd.to_datetime(df_url['date'])
     df_url = df_url.drop_duplicates(subset=['url'])
-
     plot_average_engagement(df_url)
-    plot_individual_engagement(df_url)
+    plot_normalized_average(df_url)
+
+    # plot_individual_engagement(df_url)
 
     # excluded_domain_name = ['zerohedge.com', 'stateofthenation.co', 'principia-scientific.com', 'newsbreak.com', 'infowars.com', 'humansarefree.com', 'greenmedinfo.com', 'dcdirtylaundry.com', 'dcclothesline.com', 'davidicke.com']
     # df_url = df_url[~df_url['domain_name'].isin(excluded_domain_name)]
     # plot_average_engagement(df_url)
     # save_figure(figure_name='34_misinformation_engagement_filtered.png')
 
-    # ['domain_name', 'date', 'article_number']
-    df_nb_1 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_nb.csv')
-    df_nb_2 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-30_nb.csv')
-    df_nb = pd.concat([df_nb_1, df_nb_2])
+    # # ['domain_name', 'date', 'article_number']
+    # df_nb_1 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23_nb.csv')
+    # df_nb_2 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-30_nb.csv')
+    # df_nb = pd.concat([df_nb_1, df_nb_2])
 
-    df_nb['date'] = pd.to_datetime(df_nb['date'])
-    plot_article_number_individually(df_nb)
+    # df_nb['date'] = pd.to_datetime(df_nb['date'])
+    # plot_article_number_individually(df_nb)
