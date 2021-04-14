@@ -6,7 +6,6 @@ import time
 
 from dotenv import load_dotenv
 import requests
-import pandas as pd
 
 from domain_name_lists import MISINFORMATION_DOMAIN_NAMES_3
 from buzzsumo_columns_to_keep import BUZZSUMO_COLUMNS_TO_KEEP
