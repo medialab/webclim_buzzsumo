@@ -32,7 +32,10 @@ def clean_ct_data(ct_df):
     ct_df = ct_df[ct_df['date'] > np.datetime64('2017-12-31')]
     ct_df = ct_df[ct_df['date'] < np.datetime64('2021-01-01')]
 
-    return ct_df[['date', 'link', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month']]
+    ct_df['domain_name'] = ct_df['link'].astype(str).apply(lambda x: ural.get_domain_name(x))
+    ct_df = ct_df[ct_df['domain_name']=='infowars.com']
+
+    return ct_df[['date', 'link', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month', 'post_url']]
 
 
 def arrange_plot(ax):
@@ -71,10 +74,11 @@ def plot_figure_1(ct_df):
     plt.plot(ct_df.resample('W', on='date')['comment'].sum(), label="Comments per week")
     plt.legend()
 
-    plt.ylim([0, 23000])
+    plt.ylim([0, 12500])
     for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
-        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 20200], color='C3', linestyle='-.')
-        plt.text(np.datetime64(date), 20500, date, size='medium', color='C3', rotation=30.)
+        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 11000], color='C3', linestyle='-.')
+        plt.text(np.datetime64(datetime.strptime(date, '%Y-%m-%d') - timedelta(days=5)), 
+                 11100, date, size='medium', color='C3', rotation=30.)
 
     plt.tight_layout()
     save_figure(figure_name='infowars_figure_1.png')
@@ -83,10 +87,10 @@ def plot_figure_1(ct_df):
 def print_before_after_statistics(df, begin_date, end_date):
 
     df_before = df[df['date'] < np.datetime64(begin_date)]
-    df_before = df_before[df_before['date'] >= np.datetime64(datetime.strptime(begin_date, '%Y-%m-%d') - timedelta(days=30))]
+    df_before = df_before[df_before['date'] >= np.datetime64(datetime.strptime(begin_date, '%Y-%m-%d') - timedelta(days=15))]
 
     df_after = df[df['date'] > np.datetime64(end_date)]
-    df_after = df_after[df_after['date'] <= np.datetime64(datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=30))]
+    df_after = df_after[df_after['date'] <= np.datetime64(datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=15))]
 
     print('The total engagement has evolved by',
         int((df_after['total_interaction'].sum() - df_before['total_interaction'].sum()) * 100 / 
@@ -211,7 +215,7 @@ if __name__=="__main__":
     # ct_df = filter_ct_data(ct_df)
     # plot_daily_article_number(bz_df, mc_df, ct_df)
 
-    ### Illustrate the problematic Buzzsumo crawling patterns
+    # # Illustrate the problematic Buzzsumo crawling patterns:
     # df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
     # print(df.iloc[1257:1268])
     # print(df.iloc[1257:1268].article_number.sum()) 
