@@ -80,6 +80,34 @@ def plot_figure_1(ct_df):
     save_figure(figure_name='infowars_figure_1.png')
 
 
+def print_before_after_statistics(df, begin_date, end_date):
+
+    df_before = df[df['date'] < np.datetime64(begin_date)]
+    df_before = df_before[df_before['date'] >= np.datetime64(datetime.strptime(begin_date, '%Y-%m-%d') - timedelta(days=30))]
+
+    df_after = df[df['date'] > np.datetime64(end_date)]
+    df_after = df_after[df_after['date'] <= np.datetime64(datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=30))]
+
+    print('The total engagement has evolved by',
+        int((df_after['total_interaction'].sum() - df_before['total_interaction'].sum()) * 100 / 
+            df_before['total_interaction'].sum()), 
+        '%. between before', begin_date, 'and after', end_date
+    )
+
+
+def print_2018_vs_2020_statistics(df):
+
+    df_before = df[df['date'] <= np.datetime64('2018-06-30')]
+    df_after = df[df['date'] >= np.datetime64('2020-07-01')]
+
+    print('The total engagement has evolved by',
+        int((df_after['total_interaction'].sum() - df_before['total_interaction'].sum()) * 100 / 
+            df_before['total_interaction'].sum()), 
+        '%. between the first 6 months of 2018 and the last 6 months of 2020'
+    )
+ 
+
+
 def clean_bz_data(bz_df):
 
     bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
@@ -165,26 +193,33 @@ def plot_daily_article_number(bz_df, mc_df, ct_df):
 
 if __name__=="__main__":
 
-    # ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
-    # ct_df = clean_ct_data(ct_df)
-    # plot_figure_1(ct_df)
+    ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
+    ct_df = clean_ct_data(ct_df)
+    plot_figure_1(ct_df)
 
-    # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
-    # bz_df = clean_bz_data(bz_df)
-    # plot_figure_2(bz_df)
+    print_before_after_statistics(ct_df, '2018-07-30', '2018-08-06')
+    print_before_after_statistics(ct_df, '2019-02-05', '2019-02-05')
+    print_before_after_statistics(ct_df, '2019-05-02', '2019-05-02')
+    print_2018_vs_2020_statistics(ct_df)
 
-    df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
-    print(df.iloc[1257:1268])
-    print(df.iloc[1257:1268].article_number.sum()) 
-    print()
-    print(df.iloc[1372:1461])
-    print(df.iloc[1372:1461].article_number.sum())
-    print()
-    print(df.iloc[365].date)
-    print(df.iloc[1256].date)
-    print(df.iloc[365:1257].article_number.mean())
+    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    bz_df = clean_bz_data(bz_df)
+    plot_figure_2(bz_df)
 
     # mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
     # mc_df = clean_mc_data(mc_df)
     # ct_df = filter_ct_data(ct_df)
     # plot_daily_article_number(bz_df, mc_df, ct_df)
+
+    ### Illustrate the problematic Buzzsumo crawling patterns
+    # df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
+    # print(df.iloc[1257:1268])
+    # print(df.iloc[1257:1268].article_number.sum()) 
+    # print()
+    # print(df.iloc[1372:1461])
+    # print(df.iloc[1372:1461].article_number.sum())
+    # print()
+    # print(df.iloc[365].date)
+    # print(df.iloc[1256].date)
+    # print(df.iloc[365:1257].article_number.mean())
+
