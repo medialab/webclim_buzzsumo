@@ -32,6 +32,7 @@ def clean_ct_data(ct_df):
     ct_df = ct_df[ct_df['date'] > np.datetime64('2017-12-31')]
     ct_df = ct_df[ct_df['date'] < np.datetime64('2021-01-01')]
 
+    ct_df['link'] = ct_df['link'].apply(lambda x: ural.normalize_url(str(x).strip()))
     ct_df['domain_name'] = ct_df['link'].astype(str).apply(lambda x: ural.get_domain_name(x))
     ct_df = ct_df[ct_df['domain_name']=='infowars.com']
 
@@ -109,7 +110,6 @@ def print_2018_vs_2020_statistics(df):
             df_before['total_interaction'].sum()), 
         '%. between the first 6 months of 2018 and the last 6 months of 2020'
     )
- 
 
 
 def clean_bz_data(bz_df):
@@ -117,23 +117,44 @@ def clean_bz_data(bz_df):
     bz_df['date'] = [datetime.fromtimestamp(x).date() for x in bz_df['published_date']]
     bz_df['date'] = pd.to_datetime(bz_df['date'])
     bz_df = bz_df[bz_df['date'] > np.datetime64('2017-12-31')]
-    bz_df = bz_df[bz_df['date'] < np.datetime64('2020-06-11')]
+    bz_df = bz_df[bz_df['date'] < np.datetime64('2021-01-01')]
 
     bz_df = bz_df.drop_duplicates(subset=['url'])
 
     return bz_df[['url', 'date', 'total_facebook_shares', 'facebook_likes', 'facebook_shares', 'facebook_comments']]
 
 
+def plot_supplementary_figure_1(bz_df, ct_df):
+
+    plt.figure(figsize=(10, 4))
+    ax = plt.subplot(111)
+    arrange_plot(ax)
+
+    temp = ct_df[['date', 'link']].sort_values(by=['date']).drop_duplicates(subset=['link'], keep='first')
+    plt.plot(temp.resample('D', on='date')['date'].agg('count'), 
+        label= "CrowdTangle API", color='C4')
+
+    plt.plot(bz_df.resample('D', on='date')['date'].agg('count'), 
+        label= "Buzzsumo API", color='C7')
+
+    plt.legend()
+    plt.ylim([0, 80])
+    plt.ylabel("Infowars articles published per day")
+    save_figure('infowars_supplementary_figure_1.png')
+
+
 def plot_figure_2(bz_df):
+
+    temp = bz_df[bz_df['date'] < np.datetime64('2020-06-11')]
 
     plt.figure(figsize=(10, 5))
     ax = plt.subplot(111)
     plt.title('Facebook engagement for the Infowars articles', fontsize='x-large')
 
     arrange_plot(ax)
-    plt.plot(bz_df.resample('W', on='date')['facebook_likes'].sum(), label="Reactions (likes, ...) per week")
-    plt.plot(bz_df.resample('W', on='date')['facebook_shares'].sum(), label="Shares per week")
-    plt.plot(bz_df.resample('W', on='date')['facebook_comments'].sum(), label="Comments per week")
+    plt.plot(temp.resample('W', on='date')['facebook_likes'].sum(), label="Reactions (likes, ...) per week")
+    plt.plot(temp.resample('W', on='date')['facebook_shares'].sum(), label="Shares per week")
+    plt.plot(temp.resample('W', on='date')['facebook_comments'].sum(), label="Comments per week")
     plt.legend()
 
     plt.ylim([0, 180000])
@@ -151,7 +172,6 @@ def plot_top_spreaders(ct_df, top=10):
     s = s/np.sum(s)
     s = s.sort_values(ascending=False)[:top]
     list_accounts_to_watch = s.index.values
-    # print(s)
 
     table = pd.pivot_table(ct_df, values='total_interaction', aggfunc=np.sum, 
                            index=['year_month'], columns=['account_name'])
@@ -164,35 +184,6 @@ def plot_top_spreaders(ct_df, top=10):
     plt.xlabel('')
     plt.ylabel('Percentage in Facebook total engagement')
     save_figure('infowars_top' + str(top) + '_spreaders.png')
-
-
-def filter_ct_data(ct_df):
-
-    ct_df['link'] = ct_df['link'].apply(lambda x: ural.normalize_url(str(x).strip()))
-    ct_df['domain_name'] = ct_df['link'].apply(lambda x: ural.get_domain_name(x))
-    ct_df = ct_df[ct_df['domain_name']=='infowars.com']
-    ct_df = ct_df[['date', 'link']].sort_values(by=['date'])
-    ct_df = ct_df.drop_duplicates(subset=['link'], keep='first')
-
-    return ct_df
-
-
-def plot_daily_article_number(bz_df, mc_df, ct_df):
-
-    plt.figure(figsize=(10, 4))
-    ax = plt.subplot(111)
-    arrange_plot(ax)
-
-    plt.plot(bz_df.resample('W', on='date')['date'].agg('count'), 
-        label= "Buzzsumo (" + str(bz_df.url.nunique()) + " articles)", color=[.2, .2, .2])
-    plt.plot(mc_df.resample('W', on='date')['date'].agg('count'), 
-        label= "Media Cloud (" + str(mc_df.url.nunique()) + " articles)", color='C3')
-    plt.plot(ct_df.resample('W', on='date')['date'].agg('count'), 
-        label= "CrowdTangle (" + str(ct_df.link.nunique()) + " articles)", color='C4')
-    plt.legend()
-
-    plt.ylabel("Articles per week")
-    save_figure('infowars_article_number.png')
 
 
 if __name__=="__main__":
@@ -208,12 +199,8 @@ if __name__=="__main__":
 
     bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
     bz_df = clean_bz_data(bz_df)
+    plot_supplementary_figure_1(bz_df, ct_df)
     plot_figure_2(bz_df)
-
-    # mc_df = import_data(folder='mediacloud', file_name='infowars.csv')
-    # mc_df = clean_mc_data(mc_df)
-    # ct_df = filter_ct_data(ct_df)
-    # plot_daily_article_number(bz_df, mc_df, ct_df)
 
     # # Illustrate the problematic Buzzsumo crawling patterns:
     # df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
