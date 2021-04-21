@@ -63,23 +63,27 @@ def arrange_plot(ax):
                 ymin=0, ymax=200000, facecolor='k', alpha=0.05)
 
 
+def calculate_rolling_sum(df, column):
+    return df.resample('D', on='date')[column].sum().rolling(window=14, win_type='triang', center=True).mean()
+
+
 def plot_figure_1(ct_df):
 
     plt.figure(figsize=(10, 5))
     ax = plt.subplot(111)
-    plt.title('Engagement for the Facebook public posts sharing an Infowars link', fontsize='x-large')
+    plt.title('Engagement for the Facebook public posts sharing an Infowars link (CrowdTangle)', fontsize='x-large')
 
     arrange_plot(ax)
-    plt.plot(ct_df.resample('W', on='date')['reaction'].sum(), label="Reactions (likes, ...) per week")
-    plt.plot(ct_df.resample('W', on='date')['share'].sum(), label="Shares per week")
-    plt.plot(ct_df.resample('W', on='date')['comment'].sum(), label="Comments per week")
+    plt.plot(calculate_rolling_sum(ct_df, 'reaction'), label="Reactions (likes, ...) per day")
+    plt.plot(calculate_rolling_sum(ct_df, 'share'), label="Shares per day")
+    plt.plot(calculate_rolling_sum(ct_df, 'comment'), label="Comments per day")
     plt.legend()
 
-    plt.ylim([0, 12500])
+    plt.ylim([0, 1700])
     for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
-        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 11000], color='C3', linestyle='-.')
+        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 1500], color='C3', linestyle='-.')
         plt.text(np.datetime64(datetime.strptime(date, '%Y-%m-%d') - timedelta(days=5)), 
-                 11100, date, size='medium', color='C3', rotation=30.)
+                 1520, date, size='medium', color='C3', rotation=30.)
 
     plt.tight_layout()
     save_figure(figure_name='infowars_figure_1.png')
@@ -143,24 +147,31 @@ def plot_supplementary_figure_1(bz_df, ct_df):
     save_figure('infowars_supplementary_figure_1.png')
 
 
+def calculate_and_filter_rolling_sum(df, column):
+    s = calculate_rolling_sum(df, column)
+    s.loc['2020-06-11':'2020-06-21'] = np.nan
+    s.loc['2020-09-01':] = np.nan
+    return s
+
+
 def plot_figure_2(bz_df):
 
-    temp = bz_df[bz_df['date'] < np.datetime64('2020-06-11')]
+    # temp = bz_df[bz_df['date'] < np.datetime64('2020-06-11')]
 
     plt.figure(figsize=(10, 5))
     ax = plt.subplot(111)
-    plt.title('Facebook engagement for the Infowars articles', fontsize='x-large')
+    plt.title('Facebook engagement for the Infowars articles (Buzzsumo)', fontsize='x-large')
 
     arrange_plot(ax)
-    plt.plot(temp.resample('W', on='date')['facebook_likes'].sum(), label="Reactions (likes, ...) per week")
-    plt.plot(temp.resample('W', on='date')['facebook_shares'].sum(), label="Shares per week")
-    plt.plot(temp.resample('W', on='date')['facebook_comments'].sum(), label="Comments per week")
-    plt.legend()
+    plt.plot(calculate_and_filter_rolling_sum(bz_df, 'facebook_likes'), label="Reactions (likes, ...) per day")
+    plt.plot(calculate_and_filter_rolling_sum(bz_df, 'facebook_shares'), label="Shares per day")
+    plt.plot(calculate_and_filter_rolling_sum(bz_df, 'facebook_comments'), label="Comments per day")
+    plt.legend(loc='upper right')
 
-    plt.ylim([0, 180000])
+    plt.ylim([0, 24000])
     for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
-        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 158000], color='C3', linestyle='-.')
-        plt.text(np.datetime64(date), 160000, date, size='medium', color='C3', rotation=30.)
+        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 21000], color='C3', linestyle='-.')
+        plt.text(np.datetime64(date), 21200, date, size='medium', color='C3', rotation=30.)
 
     plt.tight_layout()
     save_figure(figure_name='infowars_figure_2.png')
