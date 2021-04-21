@@ -136,14 +136,14 @@ def plot_supplementary_figure_1(bz_df, ct_df):
 
     temp = ct_df[['date', 'link']].sort_values(by=['date']).drop_duplicates(subset=['link'], keep='first')
     plt.plot(temp.resample('D', on='date')['date'].agg('count'), 
-        label= "CrowdTangle API", color='C4')
+        label= "Found in the Facebook posts from the CrowdTangle API", color='C4')
 
     plt.plot(bz_df.resample('D', on='date')['date'].agg('count'), 
-        label= "Buzzsumo API", color='C7')
+        label= "According to the Buzzsumo API", color='C7')
 
     plt.legend()
     plt.ylim([0, 80])
-    plt.ylabel("Infowars articles published per day")
+    plt.ylabel("Number of Infowars articles published per day")
     save_figure('infowars_supplementary_figure_1.png')
 
 
