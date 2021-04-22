@@ -131,8 +131,6 @@ def calculate_and_filter_rolling_sum(df, column):
 
 def plot_figure_2(bz_df):
 
-    # temp = bz_df[bz_df['date'] < np.datetime64('2020-06-11')]
-
     plt.figure(figsize=(10, 5))
     ax = plt.subplot(111)
     plt.title('Facebook engagement for the Infowars articles (Buzzsumo)', fontsize='x-large')
@@ -152,7 +150,7 @@ def plot_figure_2(bz_df):
     save_figure(figure_name='infowars_figure_2.png')
 
 
-def print_before_after_statistics(df, begin_date, end_date, period=60):
+def print_before_after_engagement(df, begin_date, end_date, period=60):
 
     df_before = df[df['date'] < np.datetime64(begin_date)]
     df_before = df_before[df_before['date'] >= np.datetime64(datetime.strptime(begin_date, '%Y-%m-%d') - timedelta(days=period))]
@@ -163,6 +161,41 @@ def print_before_after_statistics(df, begin_date, end_date, period=60):
     print('The total engagement has evolved by',
         int((df_after['total_interaction'].sum() - df_before['total_interaction'].sum()) * 100 / 
             df_before['total_interaction'].sum()), 
+        '%. between before', begin_date, 'and after', end_date
+    )
+
+
+def plot_figure_4(ct_df):
+
+    plt.figure(figsize=(10, 5))
+    ax = plt.subplot(111)
+    plt.title('Daily number of Facebook public posts sharing an Infowars link (CrowdTangle)', fontsize='x-large')
+
+    arrange_plot(ax)
+    plt.plot(ct_df.resample('D', on='date')['date'].agg('count').rolling(window=14, win_type='triang', center=True).mean(), 
+             label="Number of Facebook posts per day", color='grey')
+    plt.legend(loc='upper right')
+
+    plt.ylim([0, 120])
+    for date in ["2018-08-06", "2019-02-05", "2019-05-02"]:
+        plt.plot([np.datetime64(date), np.datetime64(date)], [0, 102], color='C3', linestyle='-.')
+        plt.text(np.datetime64(date), 105, date, size='medium', color='C3', rotation=30.)
+
+    plt.tight_layout()
+    save_figure(figure_name='infowars_figure_4.png')
+
+
+def print_before_after_post_number(df, begin_date, end_date, period=60):
+
+    df_before = df[df['date'] < np.datetime64(begin_date)]
+    df_before = df_before[df_before['date'] >= np.datetime64(datetime.strptime(begin_date, '%Y-%m-%d') - timedelta(days=period))]
+
+    df_after = df[df['date'] > np.datetime64(end_date)]
+    df_after = df_after[df_after['date'] <= np.datetime64(datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=period))]
+
+    print('The daily number of posts has evolved by',
+        int((df_after.resample('D', on='date')['date'].agg('count').sum() - df_before.resample('D', on='date')['date'].agg('count').sum()) * 100 / 
+            df_before.resample('D', on='date')['date'].agg('count').sum()), 
         '%. between before', begin_date, 'and after', end_date
     )
 
@@ -199,15 +232,18 @@ if __name__=="__main__":
     plot_figure_2(bz_df)
 
     print('\n Statistics for CT:')
-    print_before_after_statistics(ct_df, '2018-07-30', '2018-08-06')
-    print_before_after_statistics(ct_df, '2019-02-05', '2019-02-05')
-    print_before_after_statistics(ct_df, '2019-05-02', '2019-05-02')
+    print_before_after_engagement(ct_df, '2018-07-30', '2018-08-06')
+    print_before_after_engagement(ct_df, '2019-02-05', '2019-02-05')
+    print_before_after_engagement(ct_df, '2019-05-02', '2019-05-02')
 
     print('\n Statistics for BZ:')
-    print_before_after_statistics(bz_df, '2018-07-30', '2018-08-06')
-    print_before_after_statistics(bz_df, '2019-02-05', '2019-02-05')
-    print_before_after_statistics(bz_df, '2019-05-02', '2019-05-02')
+    print_before_after_engagement(bz_df, '2018-07-30', '2018-08-06')
+    print_before_after_engagement(bz_df, '2019-02-05', '2019-02-05')
+    print_before_after_engagement(bz_df, '2019-05-02', '2019-05-02')
     print()
+
+    plot_figure_4(ct_df)
+    print_before_after_post_number(ct_df, '2019-05-02', '2019-05-02')
 
     # # Illustrate the problematic Buzzsumo crawling patterns:
     # df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
