@@ -118,7 +118,7 @@ def plot_supplementary_figure_1(bz_df, ct_df):
 
     plt.legend()
     plt.ylim([0, 80])
-    plt.ylabel("Number of Infowars articles published per day")
+    plt.title('Number of Infowars articles published per day', fontsize='x-large')
     save_figure('infowars_supplementary_figure_1.png')
 
 
