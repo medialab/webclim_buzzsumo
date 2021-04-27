@@ -6,6 +6,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import pytz
 import ural
+from wordcloud import WordCloud, STOPWORDS
 
 from utils import import_data, save_figure
 
@@ -36,7 +37,7 @@ def clean_ct_data(ct_df):
     ct_df['domain_name'] = ct_df['link'].astype(str).apply(lambda x: ural.get_domain_name(x))
     ct_df = ct_df[ct_df['domain_name']=='infowars.com']
 
-    return ct_df[['date', 'link', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month', 'post_url']]
+    return ct_df[['date', 'link', 'reaction', 'share', 'comment', 'total_interaction', 'account_name', 'year_month', 'post_url', 'message']]
 
 
 def arrange_plot(ax):
@@ -167,6 +168,35 @@ def print_before_after_engagement(df, begin_date, end_date, period=60):
 
 def plot_figure_4(ct_df):
 
+    stop_words = ["https", "s", "v", "los", "la" "de", "one", "la", "que", "will"] + list(STOPWORDS)
+    ct_df_temp = ct_df.dropna(subset=['message'])
+
+    posts_message_before = ' --- '.join(ct_df_temp[ct_df_temp['date'] < np.datetime64('2019-05-02')]['message'].tolist())
+    posts_message_after  = ' --- '.join(ct_df_temp[ct_df_temp['date'] > np.datetime64('2019-05-02')]['message'].tolist())
+
+    figure = plt.figure(figsize=(10, 3.3))
+    figure.suptitle("Content of the public Facebook posts sharing an Infowars link", fontsize='x-large')
+    
+    ax = plt.subplot(121)
+    ax.set_title('Before May 2, 2019')
+
+    wordcloud = WordCloud(stopwords=stop_words, background_color="white").generate(posts_message_before)
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+
+    ax = plt.subplot(122)
+    ax.set_title('After May 2, 2019')
+
+    wordcloud = WordCloud(stopwords=stop_words, background_color="white").generate(posts_message_after)
+    plt.imshow(wordcloud, interpolation='bilinear')
+    plt.axis("off")
+
+    plt.tight_layout()
+    save_figure(figure_name='infowars_figure_4.png')
+
+
+def plot_figure_5(ct_df):
+
     plt.figure(figsize=(10, 5))
     ax = plt.subplot(111)
     plt.title('Daily number of Facebook public posts sharing an Infowars link (CrowdTangle)', fontsize='x-large')
@@ -182,7 +212,7 @@ def plot_figure_4(ct_df):
         plt.text(np.datetime64(date), 105, date, size='medium', color='C3', rotation=30.)
 
     plt.tight_layout()
-    save_figure(figure_name='infowars_figure_4.png')
+    save_figure(figure_name='infowars_figure_5.png')
 
 
 def print_before_after_post_number(df, begin_date, end_date, period=60):
@@ -224,26 +254,27 @@ if __name__=="__main__":
 
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
     ct_df = clean_ct_data(ct_df)
-    plot_figure_1(ct_df)
+    # plot_figure_1(ct_df)
 
-    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
-    bz_df = clean_bz_data(bz_df)
-    plot_supplementary_figure_1(bz_df, ct_df)
-    plot_figure_2(bz_df)
+    # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    # bz_df = clean_bz_data(bz_df)
+    # plot_supplementary_figure_1(bz_df, ct_df)
+    # plot_figure_2(bz_df)
 
-    print('\n Statistics for CT:')
-    print_before_after_engagement(ct_df, '2018-07-30', '2018-08-06')
-    print_before_after_engagement(ct_df, '2019-02-05', '2019-02-05')
-    print_before_after_engagement(ct_df, '2019-05-02', '2019-05-02')
+    # print('\n Statistics for CT:')
+    # print_before_after_engagement(ct_df, '2018-07-30', '2018-08-06')
+    # print_before_after_engagement(ct_df, '2019-02-05', '2019-02-05')
+    # print_before_after_engagement(ct_df, '2019-05-02', '2019-05-02')
 
-    print('\n Statistics for BZ:')
-    print_before_after_engagement(bz_df, '2018-07-30', '2018-08-06')
-    print_before_after_engagement(bz_df, '2019-02-05', '2019-02-05')
-    print_before_after_engagement(bz_df, '2019-05-02', '2019-05-02')
-    print()
+    # print('\n Statistics for BZ:')
+    # print_before_after_engagement(bz_df, '2018-07-30', '2018-08-06')
+    # print_before_after_engagement(bz_df, '2019-02-05', '2019-02-05')
+    # print_before_after_engagement(bz_df, '2019-05-02', '2019-05-02')
+    # print()
 
     plot_figure_4(ct_df)
-    print_before_after_post_number(ct_df, '2019-05-02', '2019-05-02')
+    # plot_figure_5(ct_df)
+    # print_before_after_post_number(ct_df, '2019-05-02', '2019-05-02')
 
     # # Illustrate the problematic Buzzsumo crawling patterns:
     # df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')

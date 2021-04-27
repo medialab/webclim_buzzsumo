@@ -3,3 +3,4 @@ requests==2.25.1
 matplotlib==3.3.4
 pandas==1.2.1
 minet==0.44.0
+wordcloud==1.8.1
