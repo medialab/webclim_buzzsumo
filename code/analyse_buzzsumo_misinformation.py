@@ -10,7 +10,7 @@ from utils import save_figure
 # pd.options.display.max_rows = None
 
 
-def import_data():
+def import_buzzsumo_data():
 
     df_url_1 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23.csv')
     df_url_2 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-30.csv')
@@ -35,6 +35,35 @@ def arrange_plot(ax):
         np.datetime64(datetime.strptime('2018-12-31', '%Y-%m-%d') - timedelta(days=4)), 
         np.datetime64(datetime.strptime('2021-01-01', '%Y-%m-%d') + timedelta(days=4))
     )
+
+
+def rolling_average(df, column):
+    return df.resample('D', on='date')[column].mean().rolling(window=7, win_type='triang', center=True).mean()
+
+
+def plot_one_domain(df_url, domain_name):
+
+    df_url_domain = df_url[df_url['domain_name']==domain_name]
+
+    plt.plot(rolling_average(df_url_domain, 'facebook_likes'), label="Reactions per article", color="C0")
+    plt.plot(rolling_average(df_url_domain, 'facebook_shares'), label="Shares per article", color="C1")
+    plt.plot(rolling_average(df_url_domain, 'facebook_comments'), label="Comments per article", color="C2")
+    plt.legend()
+
+
+def plot_figure_1(df_url):
+
+    fig = plt.figure(figsize=(10, 8))
+    gs = fig.add_gridspec(2, 5)
+    ax = fig.add_subplot(gs[0, :])
+
+    domain_name = 'breitbart.com'
+    plot_one_domain(df_url, domain_name)
+    arrange_plot(ax)
+    plt.title("Engagement metrics for one 'repeat offender' domain name (" + domain_name + ")")
+    
+    plt.tight_layout()
+    save_figure(figure_name='figure_1.png')
 
 
 def plot_figure_2(df_url):
@@ -78,10 +107,6 @@ def plot_figure_2(df_url):
     save_figure(figure_name='figure_2.png')
 
 
-def rolling_average(df, column):
-    return df.resample('D', on='date')[column].mean().rolling(window=7, win_type='triang', center=True).mean()
-
-
 def plot_figure_3(df_url):
 
     domains_to_plot = [
@@ -103,19 +128,15 @@ def plot_figure_3(df_url):
     for idx in range(len(domains_to_plot)):
 
         ax = plt.subplot(5, 2, idx + 1)
+
+        plot_one_domain(df_url, domains_to_plot[idx])
+        arrange_plot(ax)
         plt.title(domains_to_plot[idx])
-
-        df_url_domain = df_url[df_url['domain_name']==domains_to_plot[idx]]
-
-        plt.plot(rolling_average(df_url_domain, 'facebook_likes'), label="Reactions per article", color="C0")
-        plt.plot(rolling_average(df_url_domain, 'facebook_shares'), label="Shares per article", color="C1")
-        plt.plot(rolling_average(df_url_domain, 'facebook_comments'), label="Comments per article", color="C2")
 
         xticks = [np.datetime64('2019-01-01'), np.datetime64('2019-05-01'), np.datetime64('2019-09-01'),
                 np.datetime64('2020-01-01'), np.datetime64('2020-05-01'), np.datetime64('2020-09-01')
                 ]
         plt.xticks(xticks, rotation=30, ha='right')
-        arrange_plot(ax)
 
     plt.tight_layout()
     save_figure('figure_3.png')
@@ -127,8 +148,8 @@ if __name__=="__main__":
     #    'alexa_rank', 'pinterest_shares', 'total_reddit_engagements',
     #    'twitter_shares', 'total_facebook_shares', 'facebook_likes',
     #    'facebook_comments', 'facebook_shares']
-    df_url = import_data()
+    df_url = import_buzzsumo_data()
 
+    plot_figure_1(df_url)
     plot_figure_2(df_url)
-
     plot_figure_3(df_url)
