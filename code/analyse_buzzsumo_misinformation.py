@@ -48,7 +48,6 @@ def plot_one_domain(df_url, domain_name):
     plt.plot(rolling_average(df_url_domain, 'facebook_likes'), label="Reactions per article", color="C0")
     plt.plot(rolling_average(df_url_domain, 'facebook_shares'), label="Shares per article", color="C1")
     plt.plot(rolling_average(df_url_domain, 'facebook_comments'), label="Comments per article", color="C2")
-    plt.legend()
 
 
 def plot_figure_1(df_url):
@@ -59,6 +58,7 @@ def plot_figure_1(df_url):
 
     domain_name = 'breitbart.com'
     plot_one_domain(df_url, domain_name)
+    plt.legend()
     arrange_plot(ax)
     plt.title("Engagement metrics for one 'repeat offender' domain name (" + domain_name + ")")
     
@@ -110,8 +110,9 @@ def plot_figure_2(df_url):
 def plot_figure_3(df_url):
 
     domains_to_plot = [
-        'thelibertybeacon.com',
         'foxnews.com',
+        'americanthinker.com',
+        'thelibertybeacon.com',
         'theepochtimes.com',
         'gellerreport.com',
         # 'breitbart.com',
@@ -120,7 +121,6 @@ def plot_figure_3(df_url):
         'wnd.com',
         'thegatewaypundit.com',
         'theblaze.com',
-        'americanthinker.com',
     ]
 
     fig = plt.figure(figsize=(10, 12))
@@ -130,6 +130,8 @@ def plot_figure_3(df_url):
         ax = plt.subplot(5, 2, idx + 1)
 
         plot_one_domain(df_url, domains_to_plot[idx])
+        if idx == 0:
+            plt.legend()
         arrange_plot(ax)
         plt.title(domains_to_plot[idx])
 
