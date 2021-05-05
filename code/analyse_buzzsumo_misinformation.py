@@ -12,15 +12,15 @@ from utils import save_figure
 
 def import_buzzsumo_data():
 
-    df_url_1 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23.csv')
-    df_url_2 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-30.csv')
-    df_url = pd.concat([df_url_1, df_url_2])
+    df_bz_1 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-23.csv')
+    df_bz_2 = pd.read_csv('./data/buzzsumo_domain_name/misinformation_2021-03-30.csv')
+    df_bz = pd.concat([df_bz_1, df_bz_2])
 
-    df_url['date'] = [datetime.fromtimestamp(x).date() for x in df_url['published_date']]
-    df_url['date'] = pd.to_datetime(df_url['date'])
-    df_url = df_url.drop_duplicates(subset=['url'])
+    df_bz['date'] = [datetime.fromtimestamp(x).date() for x in df_bz['published_date']]
+    df_bz['date'] = pd.to_datetime(df_bz['date'])
+    df_bz = df_bz.drop_duplicates(subset=['url'])
 
-    return df_url
+    return df_bz
 
 
 def arrange_plot(ax):
@@ -41,23 +41,23 @@ def rolling_average(df, column):
     return df.resample('D', on='date')[column].mean().rolling(window=7, win_type='triang', center=True).mean()
 
 
-def plot_one_domain(df_url, domain_name):
+def plot_one_domain(df, domain_name):
 
-    df_url_domain = df_url[df_url['domain_name']==domain_name]
+    df_domain = df[df['domain_name']==domain_name]
 
-    plt.plot(rolling_average(df_url_domain, 'facebook_likes'), label="Reactions per article", color="C0")
-    plt.plot(rolling_average(df_url_domain, 'facebook_shares'), label="Shares per article", color="C1")
-    plt.plot(rolling_average(df_url_domain, 'facebook_comments'), label="Comments per article", color="C2")
+    plt.plot(rolling_average(df_domain, 'facebook_likes'), label="Reactions per article", color="C0")
+    plt.plot(rolling_average(df_domain, 'facebook_shares'), label="Shares per article", color="C1")
+    plt.plot(rolling_average(df_domain, 'facebook_comments'), label="Comments per article", color="C2")
 
 
-def plot_figure_1(df_url):
+def plot_figure_1(df):
 
     fig = plt.figure(figsize=(10, 8))
     gs = fig.add_gridspec(2, 5)
     ax = fig.add_subplot(gs[0, :])
 
     domain_name = 'breitbart.com'
-    plot_one_domain(df_url, domain_name)
+    plot_one_domain(df, domain_name)
     plt.legend()
     arrange_plot(ax)
     plt.title("Engagement metrics for one 'repeat offender' domain name (" + domain_name + ")")
@@ -66,19 +66,19 @@ def plot_figure_1(df_url):
     save_figure(figure_name='figure_1.png')
 
 
-def plot_figure_2(df_url):
+def plot_figure_2(df):
     
     plt.figure(figsize=(10, 12))
 
     ax = plt.subplot(311)
-    plt.title("Average for the {} 'repeat offender' domain names".format(df_url.domain_name.nunique()), fontsize='x-large')
+    plt.title("Average for the {} 'repeat offender' domain names".format(df.domain_name.nunique()), fontsize='x-large')
 
     arrange_plot(ax)
-    plt.plot(df_url.groupby(by=["date"])["facebook_likes"].sum()/df_url.groupby(by=["date"])["domain_name"].nunique(), 
+    plt.plot(df.groupby(by=["date"])["facebook_likes"].sum()/df.groupby(by=["date"])["domain_name"].nunique(), 
             label="Reactions per day", color="C0")
-    plt.plot(df_url.groupby(by=["date"])["facebook_shares"].sum()/df_url.groupby(by=["date"])["domain_name"].nunique(), 
+    plt.plot(df.groupby(by=["date"])["facebook_shares"].sum()/df.groupby(by=["date"])["domain_name"].nunique(), 
             label="Shares per day", color="C1")
-    plt.plot(df_url.groupby(by=["date"])["facebook_comments"].sum()/df_url.groupby(by=["date"])["domain_name"].nunique(), 
+    plt.plot(df.groupby(by=["date"])["facebook_comments"].sum()/df.groupby(by=["date"])["domain_name"].nunique(), 
             label="Comments per day", color="C2")
     plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
     plt.ylim(0, 130000)
@@ -86,18 +86,18 @@ def plot_figure_2(df_url):
 
     ax = plt.subplot(312)
     arrange_plot(ax)
-    plt.plot(df_url["date"].value_counts().sort_index()/df_url.groupby(by=["date"])["domain_name"].nunique(), 
+    plt.plot(df["date"].value_counts().sort_index()/df.groupby(by=["date"])["domain_name"].nunique(), 
         label="Articles per day", color=[.2, .2, .2])
     plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
     plt.legend()
 
     ax = plt.subplot(313)
     arrange_plot(ax)
-    plt.plot(df_url.groupby(by=["date"])["facebook_likes"].sum()/df_url["date"].value_counts().sort_index(), 
+    plt.plot(df.groupby(by=["date"])["facebook_likes"].sum()/df["date"].value_counts().sort_index(), 
             label="Reactions per article")
-    plt.plot(df_url.groupby(by=["date"])["facebook_shares"].sum()/df_url["date"].value_counts().sort_index(), 
+    plt.plot(df.groupby(by=["date"])["facebook_shares"].sum()/df["date"].value_counts().sort_index(), 
             label="Shares per article")
-    plt.plot(df_url.groupby(by=["date"])["facebook_comments"].sum()/df_url["date"].value_counts().sort_index(), 
+    plt.plot(df.groupby(by=["date"])["facebook_comments"].sum()/df["date"].value_counts().sort_index(), 
             label="Comments per article")
     plt.axvline(x=np.datetime64("2020-06-09"), color='black', linestyle='--', linewidth=1)
     plt.ylim(0, 6500)
@@ -107,7 +107,7 @@ def plot_figure_2(df_url):
     save_figure(figure_name='figure_2.png')
 
 
-def plot_figure_3(df_url):
+def plot_figure_3(df):
 
     domains_to_plot = [
         'foxnews.com',
@@ -129,7 +129,7 @@ def plot_figure_3(df_url):
 
         ax = plt.subplot(5, 2, idx + 1)
 
-        plot_one_domain(df_url, domains_to_plot[idx])
+        plot_one_domain(df, domains_to_plot[idx])
         if idx == 0:
             plt.legend()
         arrange_plot(ax)
@@ -150,8 +150,8 @@ if __name__=="__main__":
     #    'alexa_rank', 'pinterest_shares', 'total_reddit_engagements',
     #    'twitter_shares', 'total_facebook_shares', 'facebook_likes',
     #    'facebook_comments', 'facebook_shares']
-    df_url = import_buzzsumo_data()
+    df_bz = import_buzzsumo_data()
 
-    plot_figure_1(df_url)
-    plot_figure_2(df_url)
-    plot_figure_3(df_url)
+    plot_figure_1(df_bz)
+    plot_figure_2(df_bz)
+    plot_figure_3(df_bz)
