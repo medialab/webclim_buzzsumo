@@ -254,27 +254,27 @@ if __name__=="__main__":
 
     ct_df = import_data(folder='crowdtangle_domain_name', file_name='infowars_posts.csv')
     ct_df = clean_ct_data(ct_df)
-    # plot_figure_1(ct_df)
+    plot_figure_1(ct_df)
 
-    # bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
-    # bz_df = clean_bz_data(bz_df)
-    # plot_supplementary_figure_1(bz_df, ct_df)
-    # plot_figure_2(bz_df)
+    bz_df = import_data(folder='buzzsumo_domain_name', file_name='infowars.csv')
+    bz_df = clean_bz_data(bz_df)
+    plot_supplementary_figure_1(bz_df, ct_df)
+    plot_figure_2(bz_df)
 
-    # print('\n Statistics for CT:')
-    # print_before_after_engagement(ct_df, '2018-07-30', '2018-08-06')
-    # print_before_after_engagement(ct_df, '2019-02-05', '2019-02-05')
-    # print_before_after_engagement(ct_df, '2019-05-02', '2019-05-02')
+    print('\n Statistics for CT:')
+    print_before_after_engagement(ct_df, '2018-07-30', '2018-08-06')
+    print_before_after_engagement(ct_df, '2019-02-05', '2019-02-05')
+    print_before_after_engagement(ct_df, '2019-05-02', '2019-05-02')
 
-    # print('\n Statistics for BZ:')
-    # print_before_after_engagement(bz_df, '2018-07-30', '2018-08-06')
-    # print_before_after_engagement(bz_df, '2019-02-05', '2019-02-05')
-    # print_before_after_engagement(bz_df, '2019-05-02', '2019-05-02')
-    # print()
+    print('\n Statistics for BZ:')
+    print_before_after_engagement(bz_df, '2018-07-30', '2018-08-06')
+    print_before_after_engagement(bz_df, '2019-02-05', '2019-02-05')
+    print_before_after_engagement(bz_df, '2019-05-02', '2019-05-02')
+    print()
 
     plot_figure_4(ct_df)
-    # plot_figure_5(ct_df)
-    # print_before_after_post_number(ct_df, '2019-05-02', '2019-05-02')
+    plot_figure_5(ct_df)
+    print_before_after_post_number(ct_df, '2019-05-02', '2019-05-02')
 
     # # Illustrate the problematic Buzzsumo crawling patterns:
     # df = import_data(folder='buzzsumo_domain_name', file_name='infowars_nb.csv')
@@ -287,4 +287,3 @@ if __name__=="__main__":
     # print(df.iloc[365].date)
     # print(df.iloc[1256].date)
     # print(df.iloc[365:1257].article_number.mean())
-
