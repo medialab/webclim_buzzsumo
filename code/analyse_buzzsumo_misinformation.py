@@ -1,9 +1,11 @@
 from datetime import datetime, timedelta
+import random
 
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+import scipy.stats as stats
 
 from utils import save_figure, import_data
 
@@ -132,7 +134,7 @@ def plot_example_domain(df_bz, df_url, ax):
                 loc='upper right', framealpha=1)
     plt.gca().add_artist(legend1)
 
-    plt.title("Engagement metrics for one 'repeat offender' domain name (" + domain_name + ")")
+    plt.title("Engagement metrics for one example 'repeat offender' domain name (" + domain_name + ")")
     
     plt.text(
         s='Known strikes', color='C3', fontweight='bold',
@@ -141,13 +143,164 @@ def plot_example_domain(df_bz, df_url, ax):
     )
 
 
+def keep_repeat_offender_posts(df_bz, domain_name, repeat_offender_periods):
+    
+    if len(repeat_offender_periods) == 0:
+        return pd.DataFrame()
+    
+    df_bz_domain = df_bz[df_bz['domain_name']==domain_name]
+
+    repeat_offender_df_list = []
+    for repeat_offender_period in repeat_offender_periods:
+        new_df = df_bz_domain[(df_bz_domain['date'] >= repeat_offender_period[0]) &
+                              (df_bz_domain['date'] <= repeat_offender_period[1])]
+        if len(new_df) > 0:
+            repeat_offender_df_list.append(new_df)
+    
+    if len(repeat_offender_df_list) > 0:
+        return pd.concat(repeat_offender_df_list)
+    else:
+        return pd.DataFrame()
+
+
+def keep_free_posts(df_bz, domain_name, repeat_offender_periods):
+    
+    df_bz_domain = df_bz[df_bz['domain_name']==domain_name]
+    if len(repeat_offender_periods) == 0:
+        return df_bz_domain
+    
+    free_df_list = []
+    for ro_index in range(len(repeat_offender_periods) + 1):
+        if ro_index == 0:
+            new_df = df_bz_domain[df_bz_domain['date'] < repeat_offender_periods[0][0]]
+        elif ro_index == len(repeat_offender_periods):
+            new_df = df_bz_domain[df_bz_domain['date'] > repeat_offender_periods[-1][1]]
+        else:
+            new_df = df_bz_domain[(df_bz_domain['date'] > repeat_offender_periods[ro_index - 1][1]) &
+                                  (df_bz_domain['date'] < repeat_offender_periods[ro_index][0])]
+        if len(new_df) > 0:
+            free_df_list.append(new_df)
+    
+    if len(free_df_list) > 0:
+        return pd.concat(free_df_list)
+    else:
+        return pd.DataFrame()
+
+
+def compute_periods_average(df_bz, df_url):
+
+    repeat_offender = {
+        'reaction': [],
+        'share': [],
+        'comment': []
+    }
+    free = {
+        'reaction': [],
+        'share': [],
+        'comment': []
+    }
+
+    for domain_name in df_bz['domain_name'].unique():
+            
+        strike_dates = get_strike_dates(df_url, domain_name)
+        repeat_offender_periods = compute_repeat_offender_periods(strike_dates)
+        repeat_offender_periods = merge_overlapping_periods(repeat_offender_periods)
+        
+        repeat_offender_df = keep_repeat_offender_posts(df_bz, domain_name, repeat_offender_periods)
+        free_df            = keep_free_posts(df_bz, domain_name, repeat_offender_periods)
+        
+        if (len(repeat_offender_df) > 1000) & (len(free_df) > 1000):
+            
+            repeat_offender['reaction'].append(np.mean(repeat_offender_df['facebook_likes']))
+            free['reaction'].append(np.mean(free_df['facebook_likes']))
+            
+            repeat_offender['share'].append(np.mean(repeat_offender_df['facebook_shares']))
+            free['share'].append(np.mean(free_df['facebook_shares']))
+            
+            repeat_offender['comment'].append(np.mean(repeat_offender_df['facebook_comments']))
+            free['comment'].append(np.mean(free_df['facebook_comments']))
+
+    return repeat_offender, free
+
+
+def print_repeat_offender_statistics(repeat_offender, free):
+
+    w, p = stats.wilcoxon(repeat_offender['reaction'], free['reaction'])
+    print('Wilcoxon test between the reactions: w =', w, ', p =', p)
+    
+    w, p = stats.wilcoxon(repeat_offender['share'], free['share'])
+    print('Wilcoxon test between the shares: w =', w, ', p =', p)
+
+    w, p = stats.wilcoxon(repeat_offender['comment'], free['comment'])
+    print('Wilcoxon test between the comments: w =', w, ', p =', p, '\n')
+
+
+def calculate_confidence_interval(sample):
+
+    averages = []
+    for bootstrap_index in range(1000):
+        resampled_sample = random.choices(sample, k=len(sample))
+        averages.append(np.mean(resampled_sample))
+
+    return np.percentile(averages, 5), np.percentile(averages, 95)
+
+
+def plot_repeat_offender_average(repeat_offender, free, ax):
+
+    width = .25
+    labels = ['Reactions', 'Shares', 'Comments']
+    x = np.arange(len(labels)) 
+
+    # Plot the bars
+    plt.bar(x - width/2, [np.mean(free['reaction']), np.mean(free['share']), np.mean(free['comment'])], 
+                    width, label="'No strike' periods", color='white', edgecolor=[.2, .2, .2], zorder=3)
+
+    plt.bar(x + width/2, [np.mean(repeat_offender['reaction']), np.mean(repeat_offender['share']), 
+                                        np.mean(repeat_offender['comment'])], 
+                    width, label="'Repeat offender' periods", color='pink', edgecolor=[.2, .2, .2], zorder=3)
+
+    # Add the error bars
+    idx = 0   
+    for metric in ['reaction', 'share', 'comment']:
+        low, high = calculate_confidence_interval(free[metric])
+        plt.errorbar(idx - width/2, np.mean(free[metric]), 
+            yerr=[[np.mean(free[metric]) - low], [high - np.mean(free[metric])]], 
+            color=[.2, .2, .2], zorder=4, linestyle='')
+
+        low, high = calculate_confidence_interval(repeat_offender[metric])
+        plt.errorbar(idx + width/2, np.mean(repeat_offender[metric]), 
+            yerr=[[np.mean(repeat_offender[metric]) - low], [high - np.mean(repeat_offender[metric])]], 
+            color=[.2, .2, .2], zorder=4, linestyle='')
+
+        idx += 1
+
+    plt.legend(framealpha=1)
+
+    plt.title("Engagement metrics averaged over {} 'repeat offender' domain names"\
+        .format(len(repeat_offender['reaction'])))
+    plt.xticks(x, labels, fontsize='large',)
+    ax.tick_params(axis='x', which='both', length=0)
+    plt.xlim([-.5, 2.5])
+    ax.grid(axis="y", zorder=0)
+    plt.locator_params(axis='y', nbins=4)
+
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+    ax.spines['top'].set_visible(False)
+
+
 def plot_figure_1(df_bz, df_url):
 
     fig = plt.figure(figsize=(10, 8))
     gs = fig.add_gridspec(2, 5)
-    ax = fig.add_subplot(gs[0, :])
 
+    ax = fig.add_subplot(gs[0, :])
     plot_example_domain(df_bz, df_url, ax)
+
+    ax = fig.add_subplot(gs[1, 1:4])
+    repeat_offender, free = compute_periods_average(df_bz, df_url)
+    print_repeat_offender_statistics(repeat_offender, free)
+    plot_repeat_offender_average(repeat_offender, free, ax)
 
     plt.tight_layout()
     save_figure(figure_name='figure_1.png')
