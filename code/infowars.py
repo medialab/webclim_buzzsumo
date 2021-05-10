@@ -151,7 +151,11 @@ def plot_figure_2(bz_df):
     save_figure(figure_name='infowars_figure_2.png')
 
 
-def print_before_after_engagement(df, begin_date, end_date, period=60):
+def calculate_percentage_evolution(before, after):
+    return int((after - before) * 100 / before)
+
+
+def print_before_after_engagement(df, begin_date, end_date, period=60, detailed=False):
 
     df_before = df[df['date'] < np.datetime64(begin_date)]
     df_before = df_before[df_before['date'] >= np.datetime64(datetime.strptime(begin_date, '%Y-%m-%d') - timedelta(days=period))]
@@ -160,10 +164,30 @@ def print_before_after_engagement(df, begin_date, end_date, period=60):
     df_after = df_after[df_after['date'] <= np.datetime64(datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=period))]
 
     print('The total engagement has evolved by',
-        int((df_after['total_interaction'].sum() - df_before['total_interaction'].sum()) * 100 / 
-            df_before['total_interaction'].sum()), 
+        calculate_percentage_evolution(
+            df_before['total_interaction'].sum(),
+            df_after['total_interaction'].sum()
+        ),
         '%. between before', begin_date, 'and after', end_date
     )
+
+    if detailed:
+        print('   (reactions:',
+            calculate_percentage_evolution(
+                df_before['reaction'].sum(),
+                df_after['reaction'].sum()
+            ), '%, shares:',
+            calculate_percentage_evolution(
+                df_before['share'].sum(),
+                df_after['share'].sum()
+            ), '%, comments:',
+            calculate_percentage_evolution(
+                df_before['comment'].sum(),
+                df_after['comment'].sum()
+            ),
+            '%)'
+        )
+
 
 
 def plot_figure_4(ct_df):
@@ -224,8 +248,10 @@ def print_before_after_post_number(df, begin_date, end_date, period=60):
     df_after = df_after[df_after['date'] <= np.datetime64(datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=period))]
 
     print('The daily number of posts has evolved by',
-        int((df_after.resample('D', on='date')['date'].agg('count').sum() - df_before.resample('D', on='date')['date'].agg('count').sum()) * 100 / 
-            df_before.resample('D', on='date')['date'].agg('count').sum()), 
+        calculate_percentage_evolution(
+            df_before.resample('D', on='date')['date'].agg('count').sum(), 
+            df_after.resample('D', on='date')['date'].agg('count').sum()
+        ),
         '%. between before', begin_date, 'and after', end_date
     )
 
@@ -264,7 +290,7 @@ if __name__=="__main__":
     print('\n Statistics for CT:')
     print_before_after_engagement(ct_df, '2018-07-30', '2018-08-06')
     print_before_after_engagement(ct_df, '2019-02-05', '2019-02-05')
-    print_before_after_engagement(ct_df, '2019-05-02', '2019-05-02')
+    print_before_after_engagement(ct_df, '2019-05-02', '2019-05-02', detailed=True)
 
     print('\n Statistics for BZ:')
     print_before_after_engagement(bz_df, '2018-07-30', '2018-08-06')
