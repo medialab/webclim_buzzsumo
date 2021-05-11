@@ -298,7 +298,7 @@ def plot_histogram(repeat_offender, free, title_detail):
     }
 
     fig = plt.figure(figsize=(14, 12))
-    fig.suptitle('Histogram of the relative changes ' + title_detail + ' for the {} domain names'\
+    fig.suptitle('Histogram of the percentage changes ' + title_detail + ' for the {} domain names'\
                 .format(len(repeat_offender['reaction'])), fontsize='x-large')
 
     xlabels = [
