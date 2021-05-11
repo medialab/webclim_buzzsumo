@@ -209,7 +209,7 @@ def compute_periods_average(df_bz, df_url):
         repeat_offender_df = keep_repeat_offender_posts(df_bz, domain_name, repeat_offender_periods)
         free_df            = keep_free_posts(df_bz, domain_name, repeat_offender_periods)
         
-        if (len(repeat_offender_df) > 1000) & (len(free_df) > 1000):
+        if (len(repeat_offender_df) > 100) & (len(free_df) > 100):
             
             repeat_offender['reaction'].append(np.mean(repeat_offender_df['facebook_likes']))
             free['reaction'].append(np.mean(free_df['facebook_likes']))
@@ -289,6 +289,52 @@ def plot_repeat_offender_average(repeat_offender, free, ax):
     ax.spines['top'].set_visible(False)
 
 
+def plot_histogram(repeat_offender, free, title_detail):
+
+    infowars = {
+        'reaction': -94,
+        'share': -96,
+        'comment': -93
+    }
+
+    fig = plt.figure(figsize=(14, 12))
+    fig.suptitle('Histogram of the relative changes ' + title_detail + ' for the {} domain names'\
+                .format(len(repeat_offender['reaction'])), fontsize='x-large')
+
+    xlabels = [
+        '-100%', '', '', '', '',
+        '-50%', '', '', '', '',
+        '0%', '', '', '', '',
+        '+50%', '', '', '', '',
+        '+100%', '', '', '', '',
+        '+150%', 'More'
+    ]
+
+    columns_to_plot = ['reaction', 'share', 'comment']
+
+    for index, column in enumerate(columns_to_plot):
+        ax = plt.subplot(3, 1, index + 1)
+        
+        evolution_percentage = [(ro - fr) * 100 / fr for ro, fr in zip(repeat_offender[column], free[column])]
+        evolution_percentage = [x for x in evolution_percentage if x != np.inf]
+        plt.hist(evolution_percentage, bins=list(range(-100, 151, 10)) + [100000], color='C' + str(index))
+        
+        plt.vlines(0, 0, 10, color='k', linestyles='dotted')
+        plt.vlines(infowars[column], 0, 3, color='C3', linestyles='dotted')
+        plt.text(infowars[column] - 2, 3.2, 'Infowars drop', color='C3', rotation=50)
+        
+        plt.xlabel(column.capitalize() + 's')
+        plt.xlim([-100, 160])
+        plt.xticks(list(range(-100, 151, 10)) + [160], xlabels)
+        ax.spines['right'].set_visible(False)
+        ax.spines['left'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        plt.locator_params(axis='y', nbins=4)
+
+    plt.tight_layout()
+    save_figure('histogram ' + title_detail + '.png')
+
+
 def plot_figure_1(df_bz, df_url):
 
     fig = plt.figure(figsize=(10, 8))
@@ -301,6 +347,7 @@ def plot_figure_1(df_bz, df_url):
     repeat_offender, free = compute_periods_average(df_bz, df_url)
     print_repeat_offender_statistics(repeat_offender, free)
     plot_repeat_offender_average(repeat_offender, free, ax)
+    plot_histogram(repeat_offender, free, "between the 'repeat offender' and the 'free' periods")
 
     plt.tight_layout()
     save_figure(figure_name='figure_1.png')
