@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import scipy.stats as stats
 
-from utils import save_figure, import_data
+from utils import import_data, save_figure
 
 
 pd.options.display.max_rows = None
