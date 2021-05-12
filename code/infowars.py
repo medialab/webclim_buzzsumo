@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import pytz
 import ural
 from wordcloud import WordCloud, STOPWORDS
 
