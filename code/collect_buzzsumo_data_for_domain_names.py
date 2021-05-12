@@ -24,11 +24,11 @@ if __name__=="__main__":
         'num_results': 100
     }
 
-    output_name = sys.argv[1] if len(sys.argv) >= 2 else 'articles.csv'
+    output_name = sys.argv[1] + '.csv' if len(sys.argv) >= 2 else 'articles.csv'
     output_path = os.path.join('.', 'data', 'buzzsumo_domain_name', output_name)
     f = open(output_path, 'w')
 
-    output_2_name = sys.argv[1].split('.')[0] + '_nb.csv' if len(sys.argv) >= 2 else 'articles_nb.csv'
+    output_2_name = sys.argv[1] + '_nb.csv' if len(sys.argv) >= 2 else 'articles_nb.csv'
     output_2_path = os.path.join('.', 'data', 'buzzsumo_domain_name', output_2_name)
     g = open(output_2_path, 'w')
 
@@ -73,8 +73,8 @@ if __name__=="__main__":
                         print('Call status code:', status_code)
 
                         if status_code == 420:
-                            print("-----------------------   PAUSE   -----------------------")
-                            time.sleep(1800)
+                            print("-----------------------   PAUSE FOR 2 MINUTES   -----------------------")
+                            time.sleep(120)
 
                         if api_call_attempt == 0:
                             end_call_time = time.time()
